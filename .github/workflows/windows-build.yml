@@ -172,6 +172,18 @@ jobs:
           Compress-Archive -Path "dist\*" -DestinationPath $archive -CompressionLevel Optimal
           Get-Item $archive | Format-List Name,Length
 
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --yes --no-progress
+
+      - name: Compile Recreate installer
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\\Inno Setup 6\\ISCC.exe"
+          if (!(Test-Path $iscc)) { throw "Inno Setup compiler was not found at $iscc" }
+          & $iscc "/DAppArch=${{ matrix.arch }}" "packaging\\installer.iss"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
       - name: Upload Recreate archive
         uses: actions/upload-artifact@v4
         with:
@@ -179,3 +191,10 @@ jobs:
           path: Heroes-of-Might-and-Magic-III-Recreate-${{ matrix.arch }}.zip
           if-no-files-found: error
           compression-level: 0
+
+      - name: Upload Recreate installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: Heroes-of-Might-and-Magic-III-Recreate-${{ matrix.arch }}-Setup
+          path: dist-installers/Heroes-of-Might-and-Magic-III-Recreate-${{ matrix.arch }}-Setup.exe
+          if-no-files-found: error
