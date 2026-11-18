@@ -20,6 +20,27 @@ The editor executable must be supplied by a matching VCMI build and placed besid
 
 The Win32 and x64 front-end executables have been cross-compiled successfully. Runtime testing on Windows is still required.
 
+## Required Heroes III content
+
+Recreate must preserve and expose the original expansion content supported by the selected VCMI revision, not silently reduce the game to Restoration of Erathia.
+
+### Armageddon's Blade
+
+Required:
+- restore the **Armageddon's Blade** expansion campaign and its campaign-selection entry;
+- support the other original Armageddon's Blade campaign scenarios and their campaign progression;
+- preserve campaign-specific victory/loss conditions, hero restrictions, carry-over rules, and scenario transitions;
+- support the expansion's maps, heroes, artifacts, creatures, adventure objects, and gameplay rules.
+
+### Conflux (Сопряжение)
+
+Required:
+- restore the **Conflux** town/faction as a playable faction;
+- support its town screen, buildings, dwellings, creature line-up, heroes, portraits, recruitment, and faction-specific gameplay;
+- ensure Conflux appears correctly in map setup, map editor, random maps, campaigns, and multiplayer where applicable.
+
+These are project requirements, not claims that Recreate has implemented them already. During VCMI integration, verify each item against the exact upstream revision and test using game data supplied by the user. Do not redistribute original Heroes III assets or campaign files in this repository.
+
 ## Build on Windows
 
 Requirements: Visual Studio 2022 with the Desktop development with C++ workload, CMake 3.20+, and Windows SDK.
@@ -51,19 +72,22 @@ cmake --build build-win64 --config Release
 ## Architecture / next milestones
 
 1. Build and package the VCMI runtime for Win32 and x64, using VCMI's own CMake project and dependency setup.
-2. Integrate the VCMI game client into the Recreate product identity, main menu, startup video, and settings.
-3. Expand Modding Studio around VCMI's native map/campaign editor instead of reimplementing it.
-4. Implement and test the Recreate lobby permissions, IP multiplayer workflow, and isolated voice-chat subsystem.
-5. Add installers, language packs (`ru-RU`, `en-US`, `uk-UA`, `en-GB`), and release verification.
+2. Verify upstream Armageddon's Blade campaign and Conflux support in the pinned VCMI revision; identify missing or regressed behavior.
+3. Integrate the VCMI game client into the Recreate product identity, main menu, startup video, and settings.
+4. Expand Modding Studio around VCMI's native map/campaign editor instead of reimplementing it.
+5. Implement and test the Recreate lobby permissions, IP multiplayer workflow, and isolated voice-chat subsystem.
+6. Add installers, language packs (`ru-RU`, `en-US`, `uk-UA`, `en-GB`), and release verification.
 
 ## Game data
 
-Original Heroes III game data is not included. Users must provide a lawful installation/copy of the game data needed by VCMI. Do not commit proprietary game assets to this repository.
+Original Heroes III game data is not included. Users must provide a lawful installation/copy of the game data needed by VCMI. Do not commit proprietary game assets, campaign files, videos, or other original game resources to this repository.
 
 ## Third-party engine
 
 VCMI is an independent open-source project. Recreate must preserve VCMI notices and comply with the license terms for any VCMI code used or modified. VCMI is not implied to endorse this project.
 
 Relevant upstream source references:
+- [VCMI Armageddon's Blade support configuration](https://github.com/vcmi/vcmi/blob/develop/config/gameConfig.json)
+- [VCMI campaign format documentation](https://vcmi.eu/modders/Campaign_Format/)
 - [VCMI Map Editor build target](https://github.com/vcmi/vcmi/blob/develop/mapeditor/CMakeLists.txt)
 - [VCMI Map Editor startup and project-file argument handling](https://github.com/vcmi/vcmi/blob/develop/mapeditor/mainwindow.cpp)
