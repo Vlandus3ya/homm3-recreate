@@ -20,6 +20,21 @@ The editor executable must be supplied by a matching VCMI build and placed besid
 
 The Win32 and x64 front-end executables have been cross-compiled successfully. Runtime testing on Windows is still required.
 
+### Windows installer pipeline
+
+The repository now contains an Inno Setup definition for separate Win32 and x64
+installers. The Windows Actions workflow stages the matching VCMI runtime,
+Recreate launcher, Modding Studio, and installation notes, then compiles a
+setup executable for each architecture. The installer pipeline is being
+validated by GitHub Actions; a successful workflow run is required before
+calling either installer a tested release.
+
+The installer does not bundle proprietary Heroes III data. Users must supply
+their own lawful game data. VCMI provides its engine and supported mechanics
+and AI implementations; available original maps, campaigns, graphics, and
+other game assets depend on the data the user imports. This initial package
+does not include a separately curated map pack or extra third-party AI mods.
+
 ## Required Heroes III content
 
 Recreate must preserve and expose the original expansion content supported by the selected VCMI revision, not silently reduce the game to Restoration of Erathia.
@@ -96,7 +111,7 @@ cmake --build build-win64 --config Release
 3. Integrate the VCMI game client into the Recreate product identity, main menu, startup video, and settings.
 4. Expand Modding Studio around VCMI's native map/campaign editor instead of reimplementing it.
 5. Implement and test the Recreate lobby permissions, IP multiplayer workflow, and isolated voice-chat subsystem.
-6. Add installers, language packs (`ru-RU`, `en-US`, `uk-UA`, `en-GB`), and release verification.
+6. Validate the Win32/x64 installer pipeline, then expand it with language packs (`ru-RU`, `en-US`, `uk-UA`, `en-GB`), lawful game-data setup, and release verification.
 
 ## Game data
 
