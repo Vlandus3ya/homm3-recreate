@@ -1,0 +1,22 @@
+Heroes of Might and Magic III: Recreate
+Windows package notes
+
+This installer packages the matching x86 or x64 VCMI runtime produced by this
+repository's pinned VCMI submodule, plus the Recreate launcher and Modding
+Studio. It also installs Start Menu shortcuts and an optional desktop shortcut.
+
+Important: this package does not contain the proprietary original Heroes III
+game data. On first launch, provide a lawful Heroes III installation/data set
+using the VCMI data setup/import process. Without that data, original graphics,
+music, maps, campaigns, and other original game resources will be unavailable.
+
+The VCMI runtime supplies the engine, supported game rules/mechanics, and its
+available AI implementations. The actual maps, campaigns, and assets available
+in a particular installation depend on the game data and VCMI-compatible mods
+installed by the user. This initial installer does not claim to bundle a
+separate curated map pack or additional third-party AI packages.
+
+The installer also includes Recreate Modding Studio, which opens the VCMI map
+editor for creating and editing maps and campaigns.
+
+Do not download or install unofficial game-data packs from untrusted sources.
