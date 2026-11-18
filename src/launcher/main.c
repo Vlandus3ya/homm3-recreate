@@ -20,9 +20,11 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE prev, PWSTR cmd, int show) {
     if (!slash) return 2;
     *slash = L'\0';
     if (swprintf(exe, MAX_PATH, L"%ls\\VCMI\\VCMI_client.exe", root) < 0 || !exists(exe)) {
-        if (swprintf(exe, MAX_PATH, L"%ls\\VCMI_client.exe", root) < 0 || !exists(exe)) {
+        if (swprintf(exe, MAX_PATH, L"%ls\\VCMI\\bin\\VCMI_client.exe", root) < 0 || !exists(exe)) {
+            if (swprintf(exe, MAX_PATH, L"%ls\\VCMI_client.exe", root) < 0 || !exists(exe)) {
             MessageBoxW(NULL, L"Не найден VCMI_client.exe. Убедитесь, что папка VCMI находится рядом с H3R-CL.exe.", L"Heroes III: Recreate", MB_OK | MB_ICONERROR);
             return 3;
+            }
         }
     }
     wcsncpy(cwd, exe, MAX_PATH - 1); cwd[MAX_PATH - 1] = 0;
