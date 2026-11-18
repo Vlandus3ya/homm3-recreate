@@ -41,6 +41,26 @@ Required:
 
 These are project requirements, not claims that Recreate has implemented them already. During VCMI integration, verify each item against the exact upstream revision and test using game data supplied by the user. Do not redistribute original Heroes III assets or campaign files in this repository.
 
+## Additional VCMI improvements
+
+Recreate should extend the selected VCMI revision with the following goals. These are planned requirements, not claims that the features are already implemented:
+
+### Display and resolution support
+
+- Support common 4:3, 16:9, and 16:10 display aspect ratios, plus ultrawide displays where the renderer permits.
+- Offer a range of practical resolutions, including high-resolution displays, while retaining a usable interface and readable text.
+- Provide windowed and fullscreen modes, with reliable switching between them.
+- Handle display scaling and high-DPI Windows settings without clipped menus, dialogs, or interface elements.
+- Keep the original Heroes III visual proportions where appropriate; do not stretch the game image just to fill the screen.
+
+### Expanded compatibility
+
+- Maximize compatibility with lawful original Heroes III data installations and the supported expansion content.
+- Improve compatibility with existing VCMI maps, campaigns, and mod packages, while clearly reporting unsupported or conflicting content.
+- Preserve compatibility with the project's Win32 and x64 builds and test both architectures independently.
+- Test across a broader range of supported Windows versions, display configurations, and hardware; document any known limitations.
+- Track the exact VCMI revision and run regression tests when updating the engine so compatibility improvements do not break existing campaigns, maps, or multiplayer.
+
 ## Build on Windows
 
 Requirements: Visual Studio 2022 with the Desktop development with C++ workload, CMake 3.20+, and Windows SDK.
