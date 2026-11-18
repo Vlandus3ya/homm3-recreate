@@ -78,6 +78,7 @@ jobs:
             --conf="tools.cmake.cmaketoolchain:generator=Ninja" \
             -s "&:build_type=RelWithDebInfo" \
             -o "&:target_pre_windows10=True" \
+            --conf="tools.microsoft.msbuild:vs_version=18"
 
       - name: Add Conan runtime libraries to PATH
         shell: bash
