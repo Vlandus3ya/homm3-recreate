@@ -91,3 +91,15 @@ Relevant upstream source references:
 - [VCMI campaign format documentation](https://vcmi.eu/modders/Campaign_Format/)
 - [VCMI Map Editor build target](https://github.com/vcmi/vcmi/blob/develop/mapeditor/CMakeLists.txt)
 - [VCMI Map Editor startup and project-file argument handling](https://github.com/vcmi/vcmi/blob/develop/mapeditor/mainwindow.cpp)
+
+
+## Third-party mod compatibility
+
+The installers in the user's archive are **not** bundled with Recreate:
+
+- The original **HoMM3 HD Mod** installer targets the original Heroes III executable and is not compatible with VCMI. Recreate should use VCMI's built-in display/interface settings instead.
+- The original **Horn of the Abyss 1.8.1** installer is not a VCMI mod package and cannot simply be installed into VCMI. Community ports in the VCMI catalogue are separate projects; the HotA team has expressed disapproval of third-party use/ports of its resources. Recreate will not redistribute HotA installers or assets without explicit permission.
+
+Armageddon's Blade and Conflux remain required project content and must not be removed when testing optional mods.
+
+See [Third-party mod compatibility and distribution rules](docs/THIRD_PARTY_MODS.md) for the full policy.
