@@ -25,7 +25,6 @@ ArchitecturesInstallIn64BitMode=x64
 PrivilegesRequired=admin
 UninstallDisplayName={#AppName} ({#AppArch})
 SetupLogging=yes
-CloseApplications=force
 RestartApplications=no
 
 [Languages]
@@ -48,14 +47,3 @@ Name: "{autodesktop}\Heroes III Recreate"; Filename: "{app}\H3R-CL.exe"; Working
 
 [Run]
 Filename: "{app}\H3R-CL.exe"; Description: "Launch Heroes III Recreate"; WorkingDir: "{app}"; Flags: postinstall nowait skipifsilent; Tasks: launch
-
-[Code]
-function InitializeSetup(): Boolean;
-begin
-  Result := True;
-  if not FileExists(ExpandConstant('{src}\..\dist\H3R-CL.exe')) then
-  begin
-    MsgBox('The Recreate launcher is missing from the staging folder. The installer package is incomplete.', mbCriticalError, MB_OK);
-    Result := False;
-  end;
-end;
