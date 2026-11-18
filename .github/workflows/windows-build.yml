@@ -1,4 +1,4 @@
-name: Windows builds
+name: Recreate Windows builds
 
 on:
   push:
@@ -6,25 +6,174 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
-  build:
+  build-engine:
+    name: Build VCMI engine (${{ matrix.arch }})
+    runs-on: windows-2025-vs2026
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            msvc_arch: x64
+            preset: windows-msvc-ninja-release
+            conan_profile: msvc-x64
+          - arch: x86
+            msvc_arch: amd64_x86
+            preset: windows-msvc-ninja-release-x86
+            conan_profile: msvc-x86
+    env:
+      VCMI_PACKAGE_FILE_NAME: recreate-${{ matrix.arch }}
+      VCMI_PACKAGE_NAME_SUFFIX: ""
+      VCMI_PACKAGE_GOLDMASTER: "OFF"
+      VCMI_PACKAGE_UPDATE_CHANNEL: "none"
+      VCMI_ENABLE_LTO: "OFF"
+      BUILD_DIR: ${{ github.workspace }}/external/vcmi/out/build/${{ matrix.preset }}
+      DEPENDENCIES_RELEASE: "2026-10-13"
+    steps:
+      - name: Checkout Recreate and pinned VCMI submodules
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Install MSVC v142 toolset
+        shell: pwsh
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $installPath = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild -property installationPath
+          $installer = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\setup.exe"
+          & $installer modify --installPath "$installPath" --add Microsoft.VisualStudio.Component.VC.v142.x86.x64 --quiet --norestart
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Setup MSVC environment
+        uses: step-security/msvc-dev-cmd@main
+        with:
+          arch: ${{ matrix.msvc_arch }}
+          toolset: "14.29"
+
+      - name: Install Conan
+        shell: bash
+        run: pipx install conan
+
+      - name: Restore pinned VCMI dependency cache
+        shell: bash
+        run: |
+          archive="dependencies-windows-${{ matrix.arch }}.txz"
+          url="https://github.com/vcmi/vcmi-dependencies/releases/download/${DEPENDENCIES_RELEASE}/${archive}"
+          curl --fail --location --proto =https --output "$RUNNER_TEMP/$archive" "$url"
+          conan cache restore "$RUNNER_TEMP/$archive"
+
+      - name: Install Conan profile
+        shell: bash
+        working-directory: external/vcmi
+        run: |
+          conan profile detect
+          conan install . \
+            --output-folder=conan-generated \
+            --build=never \
+            --profile=dependencies/conan_profiles/${{ matrix.conan_profile }} \
+            --conf="tools.cmake.cmaketoolchain:generator=Ninja" \
+            -s "&:build_type=RelWithDebInfo" \
+            -o "&:target_pre_windows10=True" \
+            --conf="tools.microsoft.msbuild:vs_version=17"
+
+      - name: Add Conan runtime libraries to PATH
+        shell: bash
+        working-directory: external/vcmi
+        run: |
+          sed 's#/[^/]*$##' conan-generated/_runtime_libs.txt | sort -u >> "$GITHUB_PATH"
+
+      - name: Setup compiler cache
+        uses: step-security/ccache-action@v1
+        with:
+          variant: sccache
+          key: recreate-${{ matrix.arch }}-${{ github.ref_name }}
+          restore-keys: |
+            recreate-${{ matrix.arch }}-${{ github.ref_name }}
+            recreate-${{ matrix.arch }}-
+
+      - name: Configure VCMI
+        shell: bash
+        working-directory: external/vcmi
+        run: cmake --preset ${{ matrix.preset }}
+
+      - name: Build VCMI
+        shell: bash
+        working-directory: external/vcmi
+        run: cmake --build --preset ${{ matrix.preset }} --parallel 2
+
+      - name: Install VCMI package tree
+        shell: bash
+        working-directory: external/vcmi
+        run: cmake --install "$BUILD_DIR" --config RelWithDebInfo
+
+      - name: Upload VCMI engine
+        uses: actions/upload-artifact@v4
+        with:
+          name: recreate-engine-${{ matrix.arch }}
+          path: external/vcmi/out/install/${{ matrix.preset }}
+          if-no-files-found: error
+          compression-level: 6
+
+  build-modding-studio:
+    name: Build Modding Studio (${{ matrix.platform }})
     runs-on: windows-2022
     strategy:
       fail-fast: false
       matrix:
         platform: [Win32, x64]
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Configure
+      - name: Configure Modding Studio
         run: cmake -S . -B build-${{ matrix.platform }} -A ${{ matrix.platform }}
 
-      - name: Build
+      - name: Build Modding Studio
         run: cmake --build build-${{ matrix.platform }} --config Release
 
-      - name: Upload artifact
+      - name: Upload Modding Studio
         uses: actions/upload-artifact@v4
         with:
-          name: Recreate-ModdingStudio-${{ matrix.platform }}
+          name: recreate-studio-${{ matrix.platform == 'Win32' && 'x86' || 'x64' }}
           path: build-${{ matrix.platform }}/bin/Release/HoMM3-Recreate-ModdingStudio.exe
+          if-no-files-found: error
+
+  package:
+    name: Package Recreate (${{ matrix.arch }})
+    needs: [build-engine, build-modding-studio]
+    runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x86, x64]
+    steps:
+      - name: Download VCMI engine
+        uses: actions/download-artifact@v4
+        with:
+          name: recreate-engine-${{ matrix.arch }}
+          path: dist/VCMI
+
+      - name: Download Modding Studio
+        uses: actions/download-artifact@v4
+        with:
+          name: recreate-studio-${{ matrix.arch }}
+          path: dist/ModdingStudio
+
+      - name: Create Recreate archive
+        shell: pwsh
+        run: |
+          $archive = "Heroes-of-Might-and-Magic-III-Recreate-${{ matrix.arch }}.zip"
+          Compress-Archive -Path "dist\*" -DestinationPath $archive -CompressionLevel Optimal
+          Get-Item $archive | Format-List Name,Length
+
+      - name: Upload Recreate archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: Heroes-of-Might-and-Magic-III-Recreate-${{ matrix.arch }}
+          path: Heroes-of-Might-and-Magic-III-Recreate-${{ matrix.arch }}.zip
+          if-no-files-found: error
+          compression-level: 0
