@@ -165,6 +165,10 @@ jobs:
           name: recreate-studio-${{ matrix.arch }}
           path: dist
 
+      - name: Add installation notes to package
+        shell: pwsh
+        run: Copy-Item packaging/INSTALLATION.txt dist/INSTALLATION.txt
+
       - name: Create Recreate archive
         shell: pwsh
         run: |
