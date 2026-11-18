@@ -93,6 +93,17 @@ Relevant upstream source references:
 - [VCMI Map Editor startup and project-file argument handling](https://github.com/vcmi/vcmi/blob/develop/mapeditor/mainwindow.cpp)
 
 
+## Intro credits
+
+The opening video will include these acknowledgements:
+
+1. **Vladislav Sanko (Vlandus3ya)** — Creator and Beta Tester of Heroes of Might and Magic III: Recreate.
+2. **ChatGPT (GPT-6)** — Coding assistance with Recreate and Modding Studio.
+3. **VCMI Team** — For the game engine and editor capabilities.
+
+Credits appear in the intro video; there is no separate credits menu. Only the contributors listed above are included in the current credits plan.
+
+
 ## Third-party mod compatibility
 
 The installers in the user's archive are **not** bundled with Recreate:
