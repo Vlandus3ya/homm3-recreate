@@ -16,16 +16,16 @@ The first C/Win32 application is a small native Windows front end for the real V
 
 VCMI's map editor contains the campaign editor as an integrated component. Modding Studio passes the selected file as the editor's positional command-line argument; VCMI handles the actual editing. The shell does not pretend to implement map editing itself.
 
-The editor executable must be supplied by a matching VCMI build and placed beside Modding Studio or in one of the searched subfolders (`VCMI/`, `VCMI/bin/`, `bin/`, or `external/vcmi/`). If it is not found, the user can locate it manually.
+The editor executable is supplied by the matching VCMI build under `Game Engine/vcmi/` (or its `bin/` subfolder). Modding Studio searches this custom location first, then legacy locations. If it is not found, the user can locate it manually.
 
 The Win32 and x64 front-end executables have been cross-compiled successfully. Runtime testing on Windows is still required.
 
 ### Windows installer pipeline
 
 The repository now contains an Inno Setup definition for separate Win32 and x64
-installers. The Windows Actions workflow stages the matching VCMI runtime,
-Recreate launcher, Modding Studio, and installation notes, then compiles a
-setup executable for each architecture. The installer pipeline is being
+installers. The Windows Actions workflow stages the matching VCMI runtime under
+`Game Engine/vcmi/`, with `h3r.exe` and `Modding Studio.exe` at the installation
+root, then compiles a setup executable for each architecture. The installer pipeline is being
 validated by GitHub Actions; a successful workflow run is required before
 calling either installer a tested release.
 
@@ -115,7 +115,7 @@ cmake --build build-win64 --config Release
 
 ## Game data
 
-Original Heroes III game data is not included. Users must provide a lawful installation/copy of the game data needed by VCMI. Do not commit proprietary game assets, campaign files, videos, or other original game resources to this repository.
+Original Heroes III game data is not included. The installer creates the custom folders `Game Engine/vcmi/data`, `h3mmaps`, `vmapmaps`, `Video`, `sounds`, plus `Profile`, `settings`, `InternetIpConnections`, and `Bots`. Users may import their own lawful game data from a local `Data` + `Maps` folder; the installer copies `Data` to `data` and `Maps` to `h3mmaps`, and duplicates `VIDEO.VID` and `Heroes3.snd` into their dedicated folders. `vmapmaps` remains empty until maps are genuinely converted with VCMI Map Editor. Do not commit proprietary game assets, campaign files, videos, or other original game resources to this repository.
 
 ## Third-party engine
 
