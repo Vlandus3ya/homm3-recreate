@@ -22,8 +22,11 @@
 static wchar_t g_editorPath[MAX_PATH];
 static HWND g_statusLabel;
 static HWND g_mainWindow;
-static HFONT g_titleFont;
-static HFONT g_bodyFont;
+static HFONT g_titleFont, g_bodyFont, g_headingFont, g_smallFont;
+static HBRUSH g_backgroundBrush;
+static const COLORREF COLOR_BG = RGB(242, 245, 249);
+static const COLORREF COLOR_HEADER = RGB(25, 43, 68);
+static const COLORREF COLOR_MUTED = RGB(100, 113, 130);
 
 static void SetStatus(const wchar_t *message)
 {
@@ -176,56 +179,91 @@ static BOOL LaunchEditor(const wchar_t *projectFile)
     return TRUE;
 }
 
+static HWND AddControl(HWND parent, const wchar_t *cls, const wchar_t *text,
+                       DWORD style, int x, int y, int w, int h, int id, HFONT font)
+{
+    HINSTANCE instance = (HINSTANCE)GetWindowLongPtrW(parent, GWLP_HINSTANCE);
+    HWND control = CreateWindowExW(0, cls, text, WS_CHILD | WS_VISIBLE | style,
+        x, y, w, h, parent, id ? (HMENU)(INT_PTR)id : NULL, instance, NULL);
+    if (font) SendMessageW(control, WM_SETFONT, (WPARAM)font, TRUE);
+    return control;
+}
+
 static void CreateAppControls(HWND window)
 {
-    HINSTANCE instance = (HINSTANCE)GetWindowLongPtrW(window, GWLP_HINSTANCE);
-    g_titleFont = CreateFontW(25, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE,
-                              DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-                              CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_SWISS, L"Segoe UI");
+    g_titleFont = CreateFontW(29, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE,
+        DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
+        DEFAULT_PITCH | FF_SWISS, L"Segoe UI");
     g_bodyFont = CreateFontW(16, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
-                             DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-                             CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_SWISS, L"Segoe UI");
+        DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
+        DEFAULT_PITCH | FF_SWISS, L"Segoe UI");
+    g_headingFont = CreateFontW(17, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE,
+        DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
+        DEFAULT_PITCH | FF_SWISS, L"Segoe UI");
+    g_smallFont = CreateFontW(13, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+        DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
+        DEFAULT_PITCH | FF_SWISS, L"Segoe UI");
 
-    HWND title = CreateWindowExW(0, L"STATIC", L"MODDING STUDIO",
-        WS_CHILD | WS_VISIBLE, 28, 24, 500, 38, window, NULL, instance, NULL);
-    SendMessageW(title, WM_SETFONT, (WPARAM)g_titleFont, TRUE);
+    AddControl(window, L"BUTTON", L"ПРОЕКТЫ", BS_GROUPBOX, 28, 145, 690, 145, 0, g_headingFont);
+    AddControl(window, L"BUTTON", L"ИНСТРУМЕНТЫ", BS_GROUPBOX, 28, 305, 690, 145, 0, g_headingFont);
 
-    HWND subtitle = CreateWindowExW(0, L"STATIC",
-        L"Create and edit maps and campaigns with the VCMI editor.",
-        WS_CHILD | WS_VISIBLE, 30, 68, 510, 26, window, NULL, instance, NULL);
-    SendMessageW(subtitle, WM_SETFONT, (WPARAM)g_bodyFont, TRUE);
+    AddControl(window, L"BUTTON", L"Открыть карту  (.h3m / .vmap)",
+        BS_PUSHBUTTON | WS_TABSTOP, 52, 190, 310, 48, ID_OPEN_MAP, g_bodyFont);
+    AddControl(window, L"BUTTON", L"Открыть кампанию  (.h3c / .vcmp)",
+        BS_PUSHBUTTON | WS_TABSTOP, 382, 190, 310, 48, ID_OPEN_CAMPAIGN, g_bodyFont);
+    AddControl(window, L"STATIC", L"Выберите существующую карту или кампанию для открытия в редакторе.",
+        SS_LEFT, 54, 247, 630, 25, 0, g_smallFont);
 
-    HWND mapButton = CreateWindowExW(0, L"BUTTON", L"Open Map (.h3m / .vmap)",
-        WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_PUSHBUTTON,
-        30, 122, 240, 44, window, (HMENU)(INT_PTR)ID_OPEN_MAP, instance, NULL);
-    SendMessageW(mapButton, WM_SETFONT, (WPARAM)g_bodyFont, TRUE);
+    AddControl(window, L"BUTTON", L"Запустить редактор карт",
+        BS_PUSHBUTTON | WS_TABSTOP, 52, 348, 310, 48, ID_START_EDITOR, g_bodyFont);
+    AddControl(window, L"BUTTON", L"Пакетная конвертация  .h3m  →  .vmap",
+        BS_PUSHBUTTON | WS_TABSTOP, 382, 348, 310, 48, ID_BATCH_CONVERT, g_bodyFont);
+    AddControl(window, L"STATIC", L"Конвертер находится в меню File редактора VCMI Map Editor.",
+        SS_LEFT, 54, 405, 630, 25, 0, g_smallFont);
 
-    HWND campaignButton = CreateWindowExW(0, L"BUTTON", L"Open Campaign (.h3c / .vcmp)",
-        WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_PUSHBUTTON,
-        286, 122, 270, 44, window, (HMENU)(INT_PTR)ID_OPEN_CAMPAIGN, instance, NULL);
-    SendMessageW(campaignButton, WM_SETFONT, (WPARAM)g_bodyFont, TRUE);
-
-    HWND startButton = CreateWindowExW(0, L"BUTTON", L"Start VCMI Map Editor",
-        WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_PUSHBUTTON,
-        30, 184, 526, 40, window, (HMENU)(INT_PTR)ID_START_EDITOR, instance, NULL);
-    SendMessageW(startButton, WM_SETFONT, (WPARAM)g_bodyFont, TRUE);
-
-    HWND convertButton = CreateWindowExW(0, L"BUTTON", L"Batch convert maps: .h3m -> .vmap",
-        WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_PUSHBUTTON,
-        30, 238, 526, 44, window, (HMENU)(INT_PTR)ID_BATCH_CONVERT, instance, NULL);
-    SendMessageW(convertButton, WM_SETFONT, (WPARAM)g_bodyFont, TRUE);
-
-    g_statusLabel = CreateWindowExW(0, L"STATIC",
-        L"Ready. VCMI Map Editor is searched beside this application and in common subfolders.",
-        WS_CHILD | WS_VISIBLE | SS_LEFT,
-        30, 300, 526, 54, window, NULL, instance, NULL);
-    SendMessageW(g_statusLabel, WM_SETFONT, (WPARAM)g_bodyFont, TRUE);
+    g_statusLabel = AddControl(window, L"STATIC",
+        L"Готово к работе. Редактор будет найден автоматически или выбран вручную.",
+        SS_LEFT, 32, 476, 690, 30, 0, g_smallFont);
 }
 
 static LRESULT CALLBACK WindowProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)
     {
+        case WM_ERASEBKGND:
+        {
+            RECT r; GetClientRect(window, &r);
+            FillRect((HDC)wParam, &r, g_backgroundBrush);
+            return 1;
+        }
+        case WM_PAINT:
+        {
+            PAINTSTRUCT ps;
+            HDC dc = BeginPaint(window, &ps);
+            RECT header = {0, 0, 760, 124};
+            HBRUSH hb = CreateSolidBrush(COLOR_HEADER);
+            FillRect(dc, &header, hb);
+            DeleteObject(hb);
+            SetBkMode(dc, TRANSPARENT);
+            SetTextColor(dc, RGB(255, 255, 255));
+            HFONT old = (HFONT)SelectObject(dc, g_titleFont);
+            TextOutW(dc, 34, 22, L"HEROES III: RECREATE", 19);
+            SelectObject(dc, g_bodyFont);
+            SetTextColor(dc, RGB(211, 224, 240));
+            TextOutW(dc, 37, 68, L"MODDING STUDIO  |  РЕДАКТОР ПРОЕКТОВ", 37);
+            SelectObject(dc, g_smallFont);
+            TextOutW(dc, 37, 96, L"Карты • кампании • инструменты конвертации", 42);
+            SelectObject(dc, old);
+            EndPaint(window, &ps);
+            return 0;
+        }
+        case WM_CTLCOLORSTATIC:
+        {
+            HDC dc = (HDC)wParam;
+            SetBkMode(dc, TRANSPARENT);
+            SetTextColor(dc, COLOR_MUTED);
+            return (LRESULT)g_backgroundBrush;
+        }
         case WM_CREATE:
             CreateAppControls(window);
             return 0;
@@ -267,6 +305,9 @@ static LRESULT CALLBACK WindowProc(HWND window, UINT message, WPARAM wParam, LPA
         case WM_DESTROY:
             if (g_titleFont) DeleteObject(g_titleFont);
             if (g_bodyFont) DeleteObject(g_bodyFont);
+            if (g_headingFont) DeleteObject(g_headingFont);
+            if (g_smallFont) DeleteObject(g_smallFont);
+            if (g_backgroundBrush) DeleteObject(g_backgroundBrush);
             PostQuitMessage(0);
             return 0;
     }
@@ -283,13 +324,15 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE previousInstance, PWSTR comman
     controls.dwICC = ICC_STANDARD_CLASSES;
     InitCommonControlsEx(&controls);
 
+    g_backgroundBrush = CreateSolidBrush(COLOR_BG);
+
     WNDCLASSEXW windowClass;
     ZeroMemory(&windowClass, sizeof(windowClass));
     windowClass.cbSize = sizeof(windowClass);
     windowClass.lpfnWndProc = WindowProc;
     windowClass.hInstance = instance;
     windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
-    windowClass.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+    windowClass.hbrBackground = g_backgroundBrush;
     windowClass.lpszClassName = L"HoMM3RecreateModdingStudioWindow";
     windowClass.hIcon = LoadIconW(NULL, IDI_APPLICATION);
     windowClass.hIconSm = windowClass.hIcon;
@@ -298,8 +341,8 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE previousInstance, PWSTR comman
         return 1;
 
     HWND window = CreateWindowExW(WS_EX_APPWINDOW, windowClass.lpszClassName, APP_TITLE,
-        WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX,
-        CW_USEDEFAULT, CW_USEDEFAULT, 610, 430,
+        WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
+        CW_USEDEFAULT, CW_USEDEFAULT, 780, 570,
         NULL, NULL, instance, NULL);
     if (!window)
         return 2;
