@@ -90,6 +90,7 @@ def build_report(source: str) -> dict:
     elif os.path.isdir(source):
         report["source_type"] = "directory"
         root = os.path.abspath(source)
+        seen: dict[str, str] = {}
         for current, dirs, files in os.walk(root, followlinks=False):
             dirs[:] = sorted(d for d in dirs if not os.path.islink(os.path.join(current, d)))
             for filename in sorted(files):
@@ -101,6 +102,11 @@ def build_report(source: str) -> dict:
                 if not safe_archive_name(relative):
                     report["unsafe_paths"].append(relative)
                     continue
+                key = relative.casefold()
+                if key in seen:
+                    report["path_collisions"].append({"first": seen[key], "second": relative})
+                else:
+                    seen[key] = relative
                 with open(path, "rb") as stream:
                     digest = sha256_stream(stream)
                 records.append({"path": relative, "size": os.path.getsize(path), "sha256": digest})
