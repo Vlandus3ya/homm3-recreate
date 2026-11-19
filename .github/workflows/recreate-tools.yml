@@ -1,0 +1,25 @@
+name: Recreate tools CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "tools/**"
+      - "tests/**"
+      - ".github/workflows/recreate-tools.yml"
+  pull_request:
+    paths:
+      - "tools/**"
+      - "tests/**"
+      - ".github/workflows/recreate-tools.yml"
+
+jobs:
+  fim-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run FIM tests
+        run: python -m unittest discover -s tests -v
