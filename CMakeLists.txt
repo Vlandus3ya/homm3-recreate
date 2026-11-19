@@ -12,7 +12,7 @@ add_executable(RecreateModdingStudio WIN32
 add_executable(H3R_CL WIN32 src/launcher/main.c)
 target_compile_definitions(H3R_CL PRIVATE UNICODE _UNICODE _WIN32_WINNT=0x0601 WINVER=0x0601)
 target_link_libraries(H3R_CL PRIVATE shell32)
-set_target_properties(H3R_CL PROPERTIES OUTPUT_NAME "H3R-CL" RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+set_target_properties(H3R_CL PROPERTIES OUTPUT_NAME "h3r" RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
 target_compile_definitions(RecreateModdingStudio PRIVATE
     UNICODE
@@ -40,7 +40,7 @@ else()
 endif()
 
 set_target_properties(RecreateModdingStudio PROPERTIES
-    OUTPUT_NAME "HoMM3-Recreate-ModdingStudio"
+    OUTPUT_NAME "Modding Studio"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
 
