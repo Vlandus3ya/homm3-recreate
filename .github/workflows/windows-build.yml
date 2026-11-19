@@ -140,8 +140,8 @@ jobs:
         with:
           name: recreate-studio-${{ matrix.platform == 'Win32' && 'x86' || 'x64' }}
           path: |
-            build-${{ matrix.platform }}/bin/Release/HoMM3-Recreate-ModdingStudio.exe
-            build-${{ matrix.platform }}/bin/Release/H3R-CL.exe
+            build-${{ matrix.platform }}/bin/Release/Modding Studio.exe
+            build-${{ matrix.platform }}/bin/Release/h3r.exe
           if-no-files-found: error
 
   package:
@@ -160,7 +160,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: recreate-engine-${{ matrix.arch }}
-          path: dist/VCMI
+          path: dist/Game Engine/vcmi
 
       - name: Download Modding Studio
         uses: actions/download-artifact@v4
