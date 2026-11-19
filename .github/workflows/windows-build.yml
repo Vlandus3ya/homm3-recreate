@@ -153,6 +153,9 @@ jobs:
       matrix:
         arch: [x86, x64]
     steps:
+      - name: Checkout repository packaging files
+        uses: actions/checkout@v4
+
       - name: Download VCMI engine
         uses: actions/download-artifact@v4
         with:
