@@ -17,6 +17,7 @@
 #define ID_OPEN_MAP       1001
 #define ID_OPEN_CAMPAIGN  1002
 #define ID_START_EDITOR   1003
+#define ID_BATCH_CONVERT  1004
 
 static wchar_t g_editorPath[MAX_PATH];
 static HWND g_statusLabel;
@@ -209,10 +210,15 @@ static void CreateAppControls(HWND window)
         30, 184, 526, 40, window, (HMENU)(INT_PTR)ID_START_EDITOR, instance, NULL);
     SendMessageW(startButton, WM_SETFONT, (WPARAM)g_bodyFont, TRUE);
 
+    HWND convertButton = CreateWindowExW(0, L"BUTTON", L"Batch convert maps: .h3m -> .vmap",
+        WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_PUSHBUTTON,
+        30, 238, 526, 44, window, (HMENU)(INT_PTR)ID_BATCH_CONVERT, instance, NULL);
+    SendMessageW(convertButton, WM_SETFONT, (WPARAM)g_bodyFont, TRUE);
+
     g_statusLabel = CreateWindowExW(0, L"STATIC",
         L"Ready. VCMI Map Editor is searched beside this application and in common subfolders.",
         WS_CHILD | WS_VISIBLE | SS_LEFT,
-        30, 246, 526, 54, window, NULL, instance, NULL);
+        30, 300, 526, 54, window, NULL, instance, NULL);
     SendMessageW(g_statusLabel, WM_SETFONT, (WPARAM)g_bodyFont, TRUE);
 }
 
@@ -243,6 +249,17 @@ static LRESULT CALLBACK WindowProc(HWND window, UINT message, WPARAM wParam, LPA
                 }
                 case ID_START_EDITOR:
                     LaunchEditor(NULL);
+                    return 0;
+                case ID_BATCH_CONVERT:
+                    if (LaunchEditor(NULL))
+                    {
+                        MessageBoxW(window,
+                            L"В VCMI Map Editor выберите File -> h3m converter.\n"
+                            L"Отметьте нужные .h3m карты (можно выбрать сразу все), затем укажите отдельную пустую папку для результата.\n\n"
+                            L"Редактор сохранит карты в формате .vmap. Исходные .h3m останутся без изменений.",
+                            L"Пакетная конвертация H3M в VMap", MB_OK | MB_ICONINFORMATION);
+                        SetStatus(L"VCMI Map Editor открыт. Используйте File -> h3m converter.");
+                    }
                     return 0;
             }
             break;
@@ -282,7 +299,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE previousInstance, PWSTR comman
 
     HWND window = CreateWindowExW(WS_EX_APPWINDOW, windowClass.lpszClassName, APP_TITLE,
         WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX,
-        CW_USEDEFAULT, CW_USEDEFAULT, 610, 370,
+        CW_USEDEFAULT, CW_USEDEFAULT, 610, 430,
         NULL, NULL, instance, NULL);
     if (!window)
         return 2;
