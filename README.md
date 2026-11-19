@@ -167,5 +167,6 @@ curated Recreate map selection. Neither map is copied into this repository.
 The proposed native Modding Studio formats are documented in
 [`docs/MODDING_STUDIO_FORMATS.md`](docs/MODDING_STUDIO_FORMATS.md):
 Artifact Editor `.h3a`, Model Editor `.h3md`, Spell Editor `.h3mc`, and
-Ability Editor `.h3as`. These are specifications only; the four editors and
+Skill Editor `.h3ss` (Heroes 3 Skills). The Skill Editor is for hero skills,
+not creature abilities. These are specifications only; the four editors and
 their VCMI exporters are not implemented yet.
