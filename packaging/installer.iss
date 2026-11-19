@@ -18,6 +18,13 @@ OutputBaseFilename=Heroes-of-Might-and-Magic-III-Recreate-{#AppArch}-Setup
 Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern
+WizardSizePercent=110
+WizardResizable=no
+DisableWelcomePage=no
+DisableFinishedPage=no
+AppComments=Heroes III Recreate engine and Modding Studio
+VersionInfoDescription=Heroes III Recreate Installer
+UninstallDisplayIcon={app}\\H3R-CL.exe
 ArchitecturesAllowed={#AppArch}
 #if AppArch == "x64"
 ArchitecturesInstallIn64BitMode=x64
@@ -26,6 +33,17 @@ PrivilegesRequired=admin
 UninstallDisplayName={#AppName} ({#AppArch})
 SetupLogging=yes
 RestartApplications=no
+
+
+[Messages]
+english.WelcomeLabel1=Welcome to Heroes III: Recreate!
+english.WelcomeLabel2=This wizard will install the Recreate engine and Modding Studio.\n\nYou can install the tools without original Heroes III game files. Those files are only needed to play the game.
+russian.WelcomeLabel1=Добро пожаловать в Heroes III: Recreate!
+russian.WelcomeLabel2=Мастер установит движок Recreate и Modding Studio.\n\nИнструменты можно установить без оригинальных файлов Heroes III. Игровые файлы потребуются только для запуска самой игры.
+english.FinishedHeadingLabel=Heroes III: Recreate is ready
+english.FinishedLabel=The installation has completed successfully.
+russian.FinishedHeadingLabel=Heroes III: Recreate готова
+russian.FinishedLabel=Установка успешно завершена.
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -46,6 +64,8 @@ english.ImportIncomplete=Some files could not be copied. Existing files were lef
 russian.ImportIncomplete=Не все файлы удалось скопировать. Существующие файлы не изменялись. Проверьте папку данных VCMI и при необходимости повторите импорт.
 english.ImportSkipped=Game data import was skipped. The engine was installed, but you must add your own original Heroes III Data and Maps files before playing.
 russian.ImportSkipped=Импорт игровых файлов пропущен. Движок установлен, но перед игрой нужно добавить собственные оригинальные папки Heroes III Data и Maps.
+english.InstallNotice=Installation is complete. Modding Studio is installed. To play Heroes III, the original game data folders Data and Maps must be added later. This installer does not include copyrighted game files.
+russian.InstallNotice=Установка завершена. Modding Studio установлена. Для запуска самой Heroes III позднее потребуется добавить оригинальные папки Data и Maps. Установщик не содержит защищённые авторским правом игровые файлы.
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional shortcuts:"
@@ -178,5 +198,5 @@ end;
 procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if CurStep = ssPostInstall then
-    ImportHeroes3Data;
+    MsgBox(CustomMessage('InstallNotice'), mbInformation, MB_OK);
 end;
