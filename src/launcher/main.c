@@ -19,11 +19,15 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE prev, PWSTR cmd, int show) {
     wchar_t *slash = wcsrchr(root, L'\\');
     if (!slash) return 2;
     *slash = L'\0';
-    if (swprintf(exe, MAX_PATH, L"%ls\\VCMI\\VCMI_client.exe", root) < 0 || !exists(exe)) {
-        if (swprintf(exe, MAX_PATH, L"%ls\\VCMI\\bin\\VCMI_client.exe", root) < 0 || !exists(exe)) {
-            if (swprintf(exe, MAX_PATH, L"%ls\\VCMI_client.exe", root) < 0 || !exists(exe)) {
-            MessageBoxW(NULL, L"Не найден VCMI_client.exe. Убедитесь, что папка VCMI находится рядом с H3R-CL.exe.", L"Heroes III: Recreate", MB_OK | MB_ICONERROR);
-            return 3;
+    if (swprintf(exe, MAX_PATH, L"%ls\\Game Engine\\vcmi\\VCMI_client.exe", root) < 0 || !exists(exe)) {
+        if (swprintf(exe, MAX_PATH, L"%ls\\Game Engine\\vcmi\\bin\\VCMI_client.exe", root) < 0 || !exists(exe)) {
+            if (swprintf(exe, MAX_PATH, L"%ls\\VCMI\\VCMI_client.exe", root) < 0 || !exists(exe)) {
+                if (swprintf(exe, MAX_PATH, L"%ls\\VCMI\\bin\\VCMI_client.exe", root) < 0 || !exists(exe)) {
+                    if (swprintf(exe, MAX_PATH, L"%ls\\VCMI_client.exe", root) < 0 || !exists(exe)) {
+                        MessageBoxW(NULL, L"Не найден VCMI_client.exe. Проверьте папку Game Engine\\vcmi.", L"Heroes III: Recreate", MB_OK | MB_ICONERROR);
+                        return 3;
+                    }
+                }
             }
         }
     }
