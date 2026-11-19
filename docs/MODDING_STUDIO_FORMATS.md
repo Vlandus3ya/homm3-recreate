@@ -30,7 +30,11 @@ paths must remain inside the project directory.
 | Artifact Editor | `.h3a` | `h3a` | Artifact metadata, slots, bonuses, icons, descriptions |
 | Model Editor | `.h3md` | `h3md` | Creature/object model metadata, animation and asset references |
 | Spell Editor | `.h3mc` | `h3mc` | Spell school, cost, targeting, effects, visuals and sound references |
-| Ability Editor | `.h3as` | `h3as` | Ability triggers, conditions, effects, parameters and descriptions |
+| Skill Editor | `.h3ss` | `h3ss` | Hero skills: name, description, levels, effects, parameters and progression |
+
+The **Skill Editor** edits hero skills (for example, Archery, Tactics, Leadership,
+Luck, and Necromancy). It is not an editor for creature abilities; those are a
+separate possible category.
 
 ## VCMI interoperability
 
