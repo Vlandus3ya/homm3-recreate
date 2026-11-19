@@ -1,0 +1,36 @@
+# Recreate bot profile
+
+Bot ID: enemybrown
+Team/color: Brown
+Personality: not specified yet
+
+## Architecture
+- Controlled by one управляющий (controller).
+- The controller delegates decisions to two командных мозга (command brains).
+- Primary command brain: ChatGPT.
+- Backup command brain: Gemini.
+- One ведомый (executor) controls the in-game hero and executes controller orders.
+- The controller sends the current game situation to the command brain, receives a decision, then issues orders to the executor.
+
+## Executor responsibilities
+- Move the hero.
+- Capture mines and other available objects.
+- Pick up resources and artifacts.
+- Recruit heroes in castles.
+- Use spells.
+- Buy resources at the market.
+- Recruit creatures and buy artifacts.
+- Build or purchase castle structures when ordered.
+
+## Command-brain connection requirement
+- First look for the ChatGPT or Gemini installed application.
+- If the application is unavailable, open a browser and navigate to https://chatgpt.com or https://gemini.google.com.
+- Connection timeout: 5 minutes.
+- ChatGPT is primary; Gemini is the reserve.
+- On Recreate Save & Exit, close the browser instance/session opened for this bot, regardless of browser vendor. Do not terminate unrelated user browser sessions.
+
+## H3R-CL
+Use only the commands documented in ../H3R-CL.md. Do not invent commands or silently rewrite identifiers.
+
+## Status
+This file is a bot profile/specification. It does not by itself implement the runtime controller, browser connection, Gemini failover, or game-action executor.
