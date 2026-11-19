@@ -34,8 +34,8 @@ Name: "russian"; MessagesFile: "compiler:Languages\\Russian.isl"
 [CustomMessages]
 english.GameDataFound=Heroes III game data was found in your VCMI data folder. No import is needed.
 russian.GameDataFound=Файлы Heroes III уже найдены в папке данных VCMI. Импорт не требуется.
-english.GameDataPrompt=To run VCMI, you need original Heroes III: Shadow of Death or Complete game files. Select the folder that contains the Data and Maps folders (Mp3 is optional). The installer does not include copyrighted game files.
-russian.GameDataPrompt=Для запуска VCMI нужны оригинальные файлы Heroes III: Дыхание смерти или Complete. Выберите папку, внутри которой находятся папки Data и Maps (Mp3 необязательна). Установщик не содержит оригинальные игровые файлы.
+english.GameDataPrompt=Optional: import your own Heroes III: Shadow of Death or Complete files now? Select the folder containing Data and Maps (Mp3 is optional). You can choose No and install the VCMI engine without game data. The game will need original files before it can be played.
+russian.GameDataPrompt=Необязательно: импортировать ваши файлы Heroes III: Дыхание смерти или Complete сейчас? Выберите папку с Data и Maps (Mp3 необязательна). Можно нажать «Нет» и установить VCMI без игровых данных. Для игры оригинальные файлы всё равно понадобятся.
 english.SelectGameFolder=Select the Heroes III game folder
 russian.SelectGameFolder=Выберите папку с файлами Heroes III
 english.InvalidGameFolder=The selected folder must contain both folders: Data and Maps. Mp3 is optional. Nothing was copied.
@@ -44,8 +44,8 @@ english.ImportComplete=Game data import finished. Existing files were not overwr
 russian.ImportComplete=Импорт игровых файлов завершён. Существующие файлы не перезаписывались. Теперь VCMI может просканировать папку с данными.
 english.ImportIncomplete=Some files could not be copied. Existing files were left unchanged. Check the VCMI data folder and try again if necessary.
 russian.ImportIncomplete=Не все файлы удалось скопировать. Существующие файлы не изменялись. Проверьте папку данных VCMI и при необходимости повторите импорт.
-english.ImportSkipped=Game data was not imported. You can run the installer again or copy Data and Maps into your VCMI data folder manually (Mp3 is optional).
-russian.ImportSkipped=Игровые файлы не были импортированы. Вы можете повторно запустить установщик или вручную скопировать Data и Maps (Mp3 необязательна) в папку данных VCMI.
+english.ImportSkipped=Game data import was skipped. The engine was installed, but you must add your own original Heroes III Data and Maps files before playing.
+russian.ImportSkipped=Импорт игровых файлов пропущен. Движок установлен, но перед игрой нужно добавить собственные оригинальные папки Heroes III Data и Maps.
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional shortcuts:"
@@ -133,13 +133,12 @@ begin
     exit;
   end;
 
-  if not ForceDirectories(DestDir) then
+  if MsgBox(CustomMessage('GameDataPrompt'), mbConfirmation, MB_YESNO) <> IDYES then
   begin
-    MsgBox(CustomMessage('ImportIncomplete'), mbError, MB_OK);
+    MsgBox(CustomMessage('ImportSkipped'), mbInformation, MB_OK);
     exit;
   end;
 
-  MsgBox(CustomMessage('GameDataPrompt'), mbInformation, MB_OK);
   SourceDir := '';
   if not BrowseForFolder(CustomMessage('SelectGameFolder'), SourceDir, False) then
   begin
@@ -150,6 +149,13 @@ begin
   if not HasRequiredGameFolders(SourceDir) then
   begin
     MsgBox(CustomMessage('InvalidGameFolder'), mbError, MB_OK);
+    MsgBox(CustomMessage('ImportSkipped'), mbInformation, MB_OK);
+    exit;
+  end;
+
+  if not ForceDirectories(DestDir) then
+  begin
+    MsgBox(CustomMessage('ImportIncomplete'), mbError, MB_OK);
     exit;
   end;
 
