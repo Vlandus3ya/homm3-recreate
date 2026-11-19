@@ -60,6 +60,7 @@ Source: "..\\dist\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs cre
 Name: "{group}\\Heroes III Recreate"; Filename: "{app}\\H3R-CL.exe"; WorkingDir: "{app}"
 Name: "{group}\\Recreate Modding Studio"; Filename: "{app}\\HoMM3-Recreate-ModdingStudio.exe"; WorkingDir: "{app}"
 Name: "{autodesktop}\\Heroes III Recreate"; Filename: "{app}\\H3R-CL.exe"; WorkingDir: "{app}"; Tasks: desktopicon
+Name: "{autodesktop}\\Recreate Modding Studio"; Filename: "{app}\\HoMM3-Recreate-ModdingStudio.exe"; WorkingDir: "{app}"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\\H3R-CL.exe"; Description: "Launch Heroes III Recreate"; WorkingDir: "{app}"; Flags: postinstall nowait skipifsilent; Tasks: launch
