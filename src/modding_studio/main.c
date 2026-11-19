@@ -74,6 +74,8 @@ static BOOL LocateEditor(void)
         return FALSE;
 
     static const wchar_t *relativeCandidates[] = {
+        L"Game Engine\\vcmi\\VCMI_mapeditor.exe",
+        L"Game Engine\\vcmi\\bin\\VCMI_mapeditor.exe",
         L"VCMI_mapeditor.exe",
         L"VCMI\\VCMI_mapeditor.exe",
         L"VCMI\\bin\\VCMI_mapeditor.exe",
