@@ -149,3 +149,23 @@ The installers in the user's archive are **not** bundled with Recreate:
 Armageddon's Blade and Conflux remain required project content and must not be removed when testing optional mods.
 
 See [Third-party mod compatibility and distribution rules](docs/THIRD_PARTY_MODS.md) for the full policy.
+
+## Recreate File Integrity Manager (FIM)
+
+A first read-only FIM utility is now in `tools/recreate_fim.py`. It audits ZIP
+archives or selected directories, verifies ZIP CRCs, computes SHA-256 hashes,
+reports duplicate contents and case-insensitive path collisions, and inventories
+`.h3m` maps. It never extracts or modifies the source data. See
+[`docs/FIM.md`](docs/FIM.md). Automated tests run through the
+[`Recreate tools CI`](.github/workflows/recreate-tools.yml) workflow.
+
+The source archive's curation decisions are recorded in
+[`docs/MAP_CURATION.md`](docs/MAP_CURATION.md): **World adventures** remains
+an in-development priority; **(CAMPAIGN) Moldovanka** is excluded from the
+curated Recreate map selection. Neither map is copied into this repository.
+
+The proposed native Modding Studio formats are documented in
+[`docs/MODDING_STUDIO_FORMATS.md`](docs/MODDING_STUDIO_FORMATS.md):
+Artifact Editor `.h3a`, Model Editor `.h3md`, Spell Editor `.h3mc`, and
+Ability Editor `.h3as`. These are specifications only; the four editors and
+their VCMI exporters are not implemented yet.
