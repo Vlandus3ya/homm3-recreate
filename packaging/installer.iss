@@ -34,18 +34,18 @@ Name: "russian"; MessagesFile: "compiler:Languages\\Russian.isl"
 [CustomMessages]
 english.GameDataFound=Heroes III game data was found in your VCMI data folder. No import is needed.
 russian.GameDataFound=Файлы Heroes III уже найдены в папке данных VCMI. Импорт не требуется.
-english.GameDataPrompt=To run VCMI, you need original Heroes III: Shadow of Death or Complete game files. Select the folder that contains the Data, Maps and Mp3 folders. The installer does not include copyrighted game files.
-russian.GameDataPrompt=Для запуска VCMI нужны оригинальные файлы Heroes III: Дыхание смерти или Complete. Выберите папку, внутри которой находятся папки Data, Maps и Mp3. Установщик не содержит оригинальные игровые файлы.
+english.GameDataPrompt=To run VCMI, you need original Heroes III: Shadow of Death or Complete game files. Select the folder that contains the Data and Maps folders (Mp3 is optional). The installer does not include copyrighted game files.
+russian.GameDataPrompt=Для запуска VCMI нужны оригинальные файлы Heroes III: Дыхание смерти или Complete. Выберите папку, внутри которой находятся папки Data и Maps (Mp3 необязательна). Установщик не содержит оригинальные игровые файлы.
 english.SelectGameFolder=Select the Heroes III game folder
 russian.SelectGameFolder=Выберите папку с файлами Heroes III
-english.InvalidGameFolder=The selected folder must contain all three folders: Data, Maps and Mp3. Nothing was copied.
-russian.InvalidGameFolder=В выбранной папке должны находиться все три папки: Data, Maps и Mp3. Файлы не скопированы.
+english.InvalidGameFolder=The selected folder must contain both folders: Data and Maps. Mp3 is optional. Nothing was copied.
+russian.InvalidGameFolder=В выбранной папке должны находиться обе папки: Data и Maps. Mp3 необязательна. Файлы не скопированы.
 english.ImportComplete=Game data import finished. Existing files were not overwritten. VCMI can now scan the data folder.
 russian.ImportComplete=Импорт игровых файлов завершён. Существующие файлы не перезаписывались. Теперь VCMI может просканировать папку с данными.
 english.ImportIncomplete=Some files could not be copied. Existing files were left unchanged. Check the VCMI data folder and try again if necessary.
 russian.ImportIncomplete=Не все файлы удалось скопировать. Существующие файлы не изменялись. Проверьте папку данных VCMI и при необходимости повторите импорт.
-english.ImportSkipped=Game data was not imported. You can run the installer again or copy Data, Maps and Mp3 into your VCMI data folder manually.
-russian.ImportSkipped=Игровые файлы не были импортированы. Вы можете повторно запустить установщик или вручную скопировать Data, Maps и Mp3 в папку данных VCMI.
+english.ImportSkipped=Game data was not imported. You can run the installer again or copy Data and Maps into your VCMI data folder manually (Mp3 is optional).
+russian.ImportSkipped=Игровые файлы не были импортированы. Вы можете повторно запустить установщик или вручную скопировать Data и Maps (Mp3 необязательна) в папку данных VCMI.
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional shortcuts:"
@@ -74,8 +74,7 @@ end;
 function HasRequiredGameFolders(const BaseDir: String): Boolean;
 begin
   Result := DirExists(BaseDir + '\\Data')
-    and DirExists(BaseDir + '\\Maps')
-    and DirExists(BaseDir + '\\Mp3');
+    and DirExists(BaseDir + '\\Maps');
 end;
 
 // Copies missing files only. Existing destination files are deliberately preserved.
@@ -155,9 +154,17 @@ begin
   end;
 
   if CopyGameFolder(SourceDir + '\\Data', DestDir + '\\Data')
-    and CopyGameFolder(SourceDir + '\\Maps', DestDir + '\\Maps')
-    and CopyGameFolder(SourceDir + '\\Mp3', DestDir + '\\Mp3') then
-    MsgBox(CustomMessage('ImportComplete'), mbInformation, MB_OK)
+    and CopyGameFolder(SourceDir + '\\Maps', DestDir + '\\Maps') then
+  begin
+    // Music files are optional; many game-data archives do not contain Mp3.
+    if DirExists(SourceDir + '\\Mp3') then
+      if not CopyGameFolder(SourceDir + '\\Mp3', DestDir + '\\Mp3') then
+      begin
+        MsgBox(CustomMessage('ImportIncomplete'), mbError, MB_OK);
+        exit;
+      end;
+    MsgBox(CustomMessage('ImportComplete'), mbInformation, MB_OK);
+  end
   else
     MsgBox(CustomMessage('ImportIncomplete'), mbError, MB_OK);
 end;
