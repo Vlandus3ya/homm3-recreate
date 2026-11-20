@@ -168,9 +168,13 @@ jobs:
           name: recreate-studio-${{ matrix.arch }}
           path: dist
 
-      - name: Add installation notes to package
+      - name: Add installation notes and open-resource scaffold to package
         shell: pwsh
-        run: Copy-Item packaging/INSTALLATION.txt dist/INSTALLATION.txt
+        run: |
+          Copy-Item packaging/INSTALLATION.txt dist/INSTALLATION.txt
+          New-Item -ItemType Directory -Force dist/OpenResources | Out-Null
+          Copy-Item OpenResources/README.md dist/OpenResources/README.md
+          Copy-Item docs/OPEN_RESOURCES.md dist/OpenResources/OPEN_RESOURCES.md
 
       - name: Create Recreate archive
         shell: pwsh
