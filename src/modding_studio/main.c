@@ -170,10 +170,7 @@ static BOOL LaunchLegacyEditor(const wchar_t *projectFile, BOOL campaign)
 static BOOL LaunchEditor(const wchar_t *projectFile, BOOL campaign)
 {
     if (!g_editorPath[0] && !LocateEditor() && !ChooseEditorExecutable())
-    {
-        SetStatus(L"VCMI Map Editor was not selected. Place VCMI_mapeditor.exe beside this app or choose it manually.");
-        return FALSE;
-    }
+        return LaunchLegacyEditor(projectFile, campaign);
 
     wchar_t commandLine[2 * MAX_PATH + 8];
     int written;
@@ -214,10 +211,8 @@ static BOOL LaunchEditor(const wchar_t *projectFile, BOOL campaign)
         GetExitCodeProcess(process.hProcess, &exitCode);
         CloseHandle(process.hThread);
         CloseHandle(process.hProcess);
-        if (exitCode != 0)
-            return LaunchLegacyEditor(projectFile, campaign);
-        SetStatus(L"VCMI Map Editor closed during startup; check its log if this was unexpected.");
-        return FALSE;
+        (void)exitCode;
+        return LaunchLegacyEditor(projectFile, campaign);
     }
     if (waitResult == WAIT_FAILED) {
         CloseHandle(process.hThread);
@@ -336,14 +331,14 @@ static LRESULT CALLBACK WindowProc(HWND window, UINT message, WPARAM wParam, LPA
                 {
                     wchar_t filePath[MAX_PATH];
                     if (ChooseProjectFile(TRUE, filePath, MAX_PATH))
-                        LaunchEditor(filePath);
+                        LaunchEditor(filePath, TRUE);
                     return 0;
                 }
                 case ID_START_EDITOR:
                     LaunchEditor(NULL, FALSE);
                     return 0;
                 case ID_BATCH_CONVERT:
-                    if (LaunchEditor(NULL))
+                    if (LaunchEditor(NULL, FALSE))
                     {
                         MessageBoxW(window,
                             L"В VCMI Map Editor выберите File -> h3m converter.\n"
