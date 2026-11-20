@@ -58,14 +58,14 @@ english.SelectGameFolder=Select the Heroes III game folder
 russian.SelectGameFolder=Выберите папку с файлами Heroes III
 english.InvalidGameFolder=The selected folder must contain both folders: Data and Maps. Mp3 is optional. Nothing was copied.
 russian.InvalidGameFolder=В выбранной папке должны находиться обе папки: Data и Maps. Mp3 необязательна. Файлы не скопированы.
-english.ImportComplete=Game data import finished. Existing files were not overwritten. The custom Recreate folders are ready.
-russian.ImportComplete=Импорт игровых файлов завершён. Существующие файлы не перезаписывались. Папки Recreate подготовлены.
+english.ImportComplete=Game data, original H3M maps, and available legacy editors were imported. Existing files were not overwritten.
+russian.ImportComplete=Игровые данные, оригинальные карты H3M и доступные старые редакторы импортированы. Существующие файлы не перезаписывались.
 english.ImportIncomplete=Some files could not be copied. Existing files were left unchanged. Check Game Engine\\vcmi and try again if necessary.
 russian.ImportIncomplete=Не все файлы удалось скопировать. Существующие файлы не изменялись. Проверьте Game Engine\\vcmi и при необходимости повторите импорт.
 english.ImportSkipped=Game data import was skipped. The engine was installed, but you must add your own original Heroes III Data and Maps files before playing.
 russian.ImportSkipped=Импорт игровых файлов пропущен. Движок установлен, но перед игрой нужно добавить собственные оригинальные папки Heroes III Data и Maps.
-english.InstallNotice=Installation is complete. Modding Studio is installed. To play Heroes III, import your original Data and Maps. If the VCMI Map Editor fails to start, Modding Studio will try the original editor if it was present in the selected game folder. This installer does not include copyrighted game files.
-russian.InstallNotice=Установка завершена. Modding Studio установлена. Для запуска Heroes III потребуется импортировать оригинальные Data и Maps. Если VCMI Map Editor не запустится, Modding Studio попробует открыть оригинальный редактор (если он есть в выбранной папке игры). Установщик не содержит защищённые авторским правом игровые файлы.
+english.InstallNotice=Installation is complete. Modding Studio prefers the imported original map/campaign editors. Original Data is installed in Game Engine\\vcmi\\Data; original H3M maps are in h3mmaps. Converted VMap maps and downloaded VCMI maps belong in vmapmaps. This public installer does not include proprietary game files.
+russian.InstallNotice=Установка завершена. Modding Studio сначала использует импортированные оригинальные редакторы карт и кампаний. Оригинальная Data находится в Game Engine\\vcmi\\Data, карты H3M — в h3mmaps. Конвертированные VMap и скачанные карты VCMI помещайте в vmapmaps. В публичный установщик игровые ресурсы не включены.
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional shortcuts:"
@@ -123,7 +123,7 @@ end;
 function HasInstalledGameFolders(const BaseDir: String): Boolean;
 begin
   // Empty directories created by the installer must not count as imported game data.
-  Result := HasFilesInFolder(BaseDir + '\\data')
+  Result := HasFilesInFolder(BaseDir + '\\Data')
     and HasFilesInFolder(BaseDir + '\\h3mmaps');
 end;
 
@@ -132,7 +132,7 @@ var
   Root: String;
 begin
   Root := VCMIRootDir;
-  ForceDirectories(Root + '\\data');
+  ForceDirectories(Root + '\\Data');
   ForceDirectories(Root + '\\h3mmaps');
   ForceDirectories(Root + '\\vmapmaps');
   ForceDirectories(Root + '\\Video');
@@ -220,26 +220,15 @@ begin
   end;
 
   CreateRecreateFolders;
-  if CopyGameFolder(SourceDir + '\\Data', DestDir + '\\data')
+  if CopyGameFolder(SourceDir + '\\Data', DestDir + '\\Data')
     and CopyGameFolder(SourceDir + '\\Maps', DestDir + '\\h3mmaps') then
   begin
-    // Keep a separate complete local copy for the original fallback editors.
-    // Registration files and registry scripts are intentionally not copied.
-    ForceDirectories(ExpandConstant('{app}') + '\\Original Heroes III');
-    if CopyGameFolder(SourceDir + '\\Data', ExpandConstant('{app}') + '\\Original Heroes III\\Data')
-      and CopyGameFolder(SourceDir + '\\Maps', ExpandConstant('{app}') + '\\Original Heroes III\\Maps') then
-    begin
-      if FileExists(SourceDir + '\\h3maped.exe') then
-        FileCopy(SourceDir + '\\h3maped.exe', ExpandConstant('{app}') + '\\Original Heroes III\\h3maped.exe', False);
-      if FileExists(SourceDir + '\\h3ccmped.exe') then
-        FileCopy(SourceDir + '\\h3ccmped.exe', ExpandConstant('{app}') + '\\Original Heroes III\\h3ccmped.exe', False);
-    end;
-    if FileExists(SourceDir + '\\Data\\VIDEO.VID') and
-      not FileExists(DestDir + '\\Video\\VIDEO.VID') then
-      FileCopy(SourceDir + '\\Data\\VIDEO.VID', DestDir + '\\Video\\VIDEO.VID', False);
-    if FileExists(SourceDir + '\\Data\\Heroes3.snd') and
-      not FileExists(DestDir + '\\sounds\\Heroes3.snd') then
-      FileCopy(SourceDir + '\\Data\\Heroes3.snd', DestDir + '\\sounds\\Heroes3.snd', False);
+    // Place only the two requested legacy editors in the VCMI engine directory.
+    // Do not copy Heroes3.exe, registration tools, registry files, or installers.
+    if FileExists(SourceDir + '\\h3maped.exe') then
+      FileCopy(SourceDir + '\\h3maped.exe', DestDir + '\\h3maped.exe', False);
+    if FileExists(SourceDir + '\\h3ccmped.exe') then
+      FileCopy(SourceDir + '\\h3ccmped.exe', DestDir + '\\h3ccmped.exe', False);
     MsgBox(CustomMessage('ImportComplete'), mbInformation, MB_OK);
   end
   else
