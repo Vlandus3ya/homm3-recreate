@@ -34,8 +34,10 @@ if(MINGW)
 endif()
 
 if(MSVC)
+    target_compile_options(H3R_CL PRIVATE /W4 /permissive- /utf-8)
     target_compile_options(RecreateModdingStudio PRIVATE /W4 /permissive- /utf-8)
 else()
+    target_compile_options(H3R_CL PRIVATE -Wall -Wextra -Wpedantic)
     target_compile_options(RecreateModdingStudio PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
