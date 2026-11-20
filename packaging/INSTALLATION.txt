@@ -20,23 +20,19 @@ The installer creates these project folders:
   Bots
 
 The installer does not contain proprietary original Heroes III game data.
-During setup, users may select their own lawful Heroes III folder containing
-Data and Maps. Data is copied to Game Engine\vcmi\data; Maps is copied to
-Game Engine\vcmi\h3mmaps. VIDEO.VID and Heroes3.snd are also copied into the
-dedicated Video and sounds folders. Existing files are not overwritten.
-If import is skipped, the folder structure is still created, but game resources
-will be missing until the user supplies them.
+Users may import their own lawful game data during setup. If no game data is
+available, Recreate can still be installed and its diagnostic mode can run:
+  h3r.exe /check
+The diagnostic checks the VCMI client executable and the data, maps, and Mods
+folders. It does not launch a playable game.
+
+The Open Resources initiative is documented in OpenResources/README.md and
+docs/OPEN_RESOURCES.md. This is an asset-development scaffold, not a complete
+playable replacement for original Heroes III data.
 
 The vmapmaps folder is intentionally not populated by renaming .h3m files.
 Maps must be genuinely converted to .vmap using VCMI Map Editor.
 
 RegisterSOD and hmm3sod.reg are not part of the Recreate setup.
-
-The VCMI runtime supplies the engine, supported game rules/mechanics, and its
-available AI implementations. Actual maps, campaigns, and assets available in
-a particular installation depend on the game data and VCMI-compatible mods
-installed by the user.
-
-Do not download or install unofficial game-data packs from untrusted sources.
 Do not commit or redistribute proprietary Heroes III resources in this public
 repository or its public build artifacts.
