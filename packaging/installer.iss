@@ -79,6 +79,7 @@ Source: "..\\dist\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs cre
 [Icons]
 Name: "{group}\\Heroes III Recreate"; Filename: "{app}\\h3r.exe"; WorkingDir: "{app}"
 Name: "{group}\\Recreate Modding Studio"; Filename: "{app}\\Modding Studio.exe"; WorkingDir: "{app}"
+Name: "{group}\\Recreate Diagnostics"; Filename: "{app}\\h3r.exe"; Parameters: "/check"; WorkingDir: "{app}"
 Name: "{autodesktop}\\Heroes III Recreate"; Filename: "{app}\\h3r.exe"; WorkingDir: "{app}"; Tasks: desktopicon
 Name: "{autodesktop}\\Recreate Modding Studio"; Filename: "{app}\\Modding Studio.exe"; WorkingDir: "{app}"; Tasks: desktopicon
 
