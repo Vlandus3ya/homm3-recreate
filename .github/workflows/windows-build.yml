@@ -162,6 +162,19 @@ jobs:
           name: recreate-engine-${{ matrix.arch }}
           path: dist/Game Engine/vcmi
 
+      - name: Validate complete VCMI runtime package
+        shell: pwsh
+        run: |
+          $engine = "dist/Game Engine/vcmi"
+          if (!(Test-Path $engine)) { throw "VCMI install tree is missing: $engine" }
+          $client = Get-ChildItem $engine -Recurse -File -Filter "VCMI_client.exe" | Select-Object -First 1
+          $editor = Get-ChildItem $engine -Recurse -File -Filter "VCMI_mapeditor.exe" | Select-Object -First 1
+          if (!$client) { throw "VCMI_client.exe is missing from the installed engine tree." }
+          if (!$editor) { throw "VCMI_mapeditor.exe is missing from the installed engine tree." }
+          New-Item -ItemType Directory -Force "$engine/Data", "$engine/h3mmaps", "$engine/vmapmaps" | Out-Null
+          Write-Host "VCMI client: $($client.FullName)"
+          Write-Host "VCMI map editor: $($editor.FullName)"
+
       - name: Download Modding Studio
         uses: actions/download-artifact@v4
         with:
