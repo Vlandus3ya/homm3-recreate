@@ -64,8 +64,8 @@ english.ImportIncomplete=Some files could not be copied. Existing files were lef
 russian.ImportIncomplete=Не все файлы удалось скопировать. Существующие файлы не изменялись. Проверьте Game Engine\\vcmi и при необходимости повторите импорт.
 english.ImportSkipped=Game data import was skipped. The engine was installed, but you must add your own original Heroes III Data and Maps files before playing.
 russian.ImportSkipped=Импорт игровых файлов пропущен. Движок установлен, но перед игрой нужно добавить собственные оригинальные папки Heroes III Data и Maps.
-english.InstallNotice=Installation is complete. Modding Studio is installed. To play Heroes III, the original game Data and Maps must be imported into Game Engine\\vcmi\\data and Game Engine\\vcmi\\h3mmaps. This installer does not include copyrighted game files.
-russian.InstallNotice=Установка завершена. Modding Studio установлена. Для запуска Heroes III потребуется импортировать оригинальные Data и Maps в Game Engine\\vcmi\\data и Game Engine\\vcmi\\h3mmaps. Установщик не содержит защищённые авторским правом игровые файлы.
+english.InstallNotice=Installation is complete. Modding Studio is installed. To play Heroes III, import your original Data and Maps. If the VCMI Map Editor fails to start, Modding Studio will try the original editor if it was present in the selected game folder. This installer does not include copyrighted game files.
+russian.InstallNotice=Установка завершена. Modding Studio установлена. Для запуска Heroes III потребуется импортировать оригинальные Data и Maps. Если VCMI Map Editor не запустится, Modding Studio попробует открыть оригинальный редактор (если он есть в выбранной папке игры). Установщик не содержит защищённые авторским правом игровые файлы.
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional shortcuts:"
@@ -98,10 +98,33 @@ begin
     and DirExists(BaseDir + '\\Maps');
 end;
 
+function HasFilesInFolder(const Folder: String): Boolean;
+var
+  FindRec: TFindRec;
+begin
+  Result := False;
+  if FindFirst(Folder + '\\*', FindRec) then
+  begin
+    try
+      repeat
+        if (FindRec.Name <> '.') and (FindRec.Name <> '..')
+          and ((FindRec.Attributes and FILE_ATTRIBUTE_DIRECTORY) = 0) then
+        begin
+          Result := True;
+          exit;
+        end;
+      until not FindNext(FindRec);
+    finally
+      FindClose(FindRec);
+    end;
+  end;
+end;
+
 function HasInstalledGameFolders(const BaseDir: String): Boolean;
 begin
-  Result := DirExists(BaseDir + '\\data')
-    and DirExists(BaseDir + '\\h3mmaps');
+  // Empty directories created by the installer must not count as imported game data.
+  Result := HasFilesInFolder(BaseDir + '\\data')
+    and HasFilesInFolder(BaseDir + '\\h3mmaps');
 end;
 
 procedure CreateRecreateFolders;
@@ -200,6 +223,17 @@ begin
   if CopyGameFolder(SourceDir + '\\Data', DestDir + '\\data')
     and CopyGameFolder(SourceDir + '\\Maps', DestDir + '\\h3mmaps') then
   begin
+    // Keep a separate complete local copy for the original fallback editors.
+    // Registration files and registry scripts are intentionally not copied.
+    ForceDirectories(ExpandConstant('{app}') + '\\Original Heroes III');
+    if CopyGameFolder(SourceDir + '\\Data', ExpandConstant('{app}') + '\\Original Heroes III\\Data')
+      and CopyGameFolder(SourceDir + '\\Maps', ExpandConstant('{app}') + '\\Original Heroes III\\Maps') then
+    begin
+      if FileExists(SourceDir + '\\h3maped.exe') then
+        FileCopy(SourceDir + '\\h3maped.exe', ExpandConstant('{app}') + '\\Original Heroes III\\h3maped.exe', False);
+      if FileExists(SourceDir + '\\h3ccmped.exe') then
+        FileCopy(SourceDir + '\\h3ccmped.exe', ExpandConstant('{app}') + '\\Original Heroes III\\h3ccmped.exe', False);
+    end;
     if FileExists(SourceDir + '\\Data\\VIDEO.VID') and
       not FileExists(DestDir + '\\Video\\VIDEO.VID') then
       FileCopy(SourceDir + '\\Data\\VIDEO.VID', DestDir + '\\Video\\VIDEO.VID', False);
