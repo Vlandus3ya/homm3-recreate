@@ -136,7 +136,7 @@ static BOOL LaunchLegacyEditor(const wchar_t *projectFile, BOOL campaign)
 
     const wchar_t *legacyName = campaign ? L"h3ccmped.exe" : L"h3maped.exe";
     wchar_t relative[MAX_PATH];
-    swprintf(relative, MAX_PATH, L"Original Heroes III\\%ls", legacyName);
+    swprintf(relative, MAX_PATH, L"Game Engine\\vcmi\\%ls", legacyName);
     if (!JoinPath(legacyPath, MAX_PATH, appDirectory, relative) || !FileExists(legacyPath)) {
         if (!JoinPath(legacyPath, MAX_PATH, appDirectory, legacyName) || !FileExists(legacyPath)) {
             SetStatus(campaign
@@ -169,6 +169,11 @@ static BOOL LaunchLegacyEditor(const wchar_t *projectFile, BOOL campaign)
 
 static BOOL LaunchEditor(const wchar_t *projectFile, BOOL campaign)
 {
+    // Prefer the original Heroes III editors shipped from the user-provided game folder.
+    // They are the compatibility fallback/replacement for the VCMI editor in this build.
+    if (LaunchLegacyEditor(projectFile, campaign))
+        return TRUE;
+
     if (!g_editorPath[0] && !LocateEditor() && !ChooseEditorExecutable())
         return LaunchLegacyEditor(projectFile, campaign);
 
