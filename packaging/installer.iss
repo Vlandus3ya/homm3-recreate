@@ -25,6 +25,7 @@ DisableFinishedPage=no
 AppComments=Heroes III Recreate engine and Modding Studio
 VersionInfoDescription=Heroes III Recreate Installer
 UninstallDisplayIcon={app}\\h3r.exe
+SetupIconFile=assets\\icons\\heroes3.ico
 ArchitecturesAllowed={#AppArch}
 #if AppArch == "x64"
 ArchitecturesInstallIn64BitMode=x64
@@ -72,19 +73,26 @@ Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription:
 Name: "launch"; Description: "Launch Recreate after setup"; GroupDescription: "Additional options:"; Flags: unchecked
 
 [Files]
-; The workflow stages the complete VCMI install tree in dist\\Game Engine\\vcmi and
-; the native Recreate front ends at the root of dist.
+; Public Recreate/VCMI runtime files.
 Source: "..\\dist\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Two user-provided application icons (not proprietary game data).
+Source: "assets\\icons\\*.ico"; DestDir: "{app}\\assets\\icons"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\\Heroes III Recreate"; Filename: "{app}\\h3r.exe"; WorkingDir: "{app}"
-Name: "{group}\\Recreate Modding Studio"; Filename: "{app}\\Modding Studio.exe"; WorkingDir: "{app}"
-Name: "{group}\\Recreate Diagnostics"; Filename: "{app}\\h3r.exe"; Parameters: "/check"; WorkingDir: "{app}"
-Name: "{autodesktop}\\Heroes III Recreate"; Filename: "{app}\\h3r.exe"; WorkingDir: "{app}"; Tasks: desktopicon
-Name: "{autodesktop}\\Recreate Modding Studio"; Filename: "{app}\\Modding Studio.exe"; WorkingDir: "{app}"; Tasks: desktopicon
+Name: "{group}\\Heroes III Recreate"; Filename: "{app}\\h3r.exe"; IconFilename: "{app}\\assets\\icons\\heroes3.ico"; WorkingDir: "{app}"
+Name: "{group}\\Recreate Modding Studio"; Filename: "{app}\\Modding Studio.exe"; IconFilename: "{app}\\assets\\icons\\modding-studio.ico"; WorkingDir: "{app}"
+Name: "{group}\\Recreate Diagnostics"; Filename: "{app}\\h3r.exe"; IconFilename: "{app}\\assets\\icons\\heroes3.ico"; Parameters: "/check"; WorkingDir: "{app}"
+Name: "{autodesktop}\\Heroes III Recreate"; Filename: "{app}\\h3r.exe"; IconFilename: "{app}\\assets\\icons\\heroes3.ico"; WorkingDir: "{app}"; Tasks: desktopicon
+Name: "{autodesktop}\\Recreate Modding Studio"; Filename: "{app}\\Modding Studio.exe"; IconFilename: "{app}\\assets\\icons\\modding-studio.ico"; WorkingDir: "{app}"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\\h3r.exe"; Description: "Launch Heroes III Recreate"; WorkingDir: "{app}"; Flags: postinstall nowait skipifsilent; Tasks: launch
+
+[UninstallDelete]
+; Remove imported game data, maps, mods, settings, and all other user-created files
+; inside this installation directory, then remove the now-empty directory itself.
+Type: filesandordirs; Name: "{app}\\*"
+Type: dirifempty; Name: "{app}"
 
 [Code]
 function VCMIRootDir: String;
@@ -187,9 +195,51 @@ begin
     Result := False;
 end;
 
+function EscapePowerShell(const Value: String): String;
+begin
+  Result := Value;
+  StringChangeEx(Result, '''', '''''', True);
+end;
+
+function FindGameRoot(const BaseDir: String): String;
+var
+  FindRec: TFindRec;
+  Candidate, Nested: String;
+begin
+  Result := '';
+  if HasSourceGameFolders(BaseDir) then
+  begin
+    Result := BaseDir;
+    exit;
+  end;
+
+  if FindFirst(BaseDir + '\\*', FindRec) then
+  begin
+    try
+      repeat
+        if (FindRec.Name <> '.') and (FindRec.Name <> '..')
+          and ((FindRec.Attributes and FILE_ATTRIBUTE_DIRECTORY) <> 0) then
+        begin
+          Candidate := BaseDir + '\\' + FindRec.Name;
+          Nested := FindGameRoot(Candidate);
+          if Nested <> '' then
+          begin
+            Result := Nested;
+            exit;
+          end;
+        end;
+      until not FindNext(FindRec);
+    finally
+      FindClose(FindRec);
+    end;
+  end;
+end;
+
 procedure ImportHeroes3Data;
 var
-  DestDir, SourceDir: String;
+  DestDir, ArchivePath, TempDir, PowerShellPath, Parameters: String;
+  SourceDir: String;
+  ResultCode: Integer;
 begin
   DestDir := VCMIRootDir;
 
@@ -205,17 +255,44 @@ begin
     exit;
   end;
 
-  SourceDir := '';
-  if not BrowseForFolder(CustomMessage('SelectGameFolder'), SourceDir, False) then
+  ArchivePath := GetOpenFileName(
+    'Select your Heroes III ZIP archive',
+    'Файлы герои 3.zip',
+    '',
+    'ZIP archives (*.zip)|*.zip|All files (*.*)|*.*',
+    'zip');
+  if ArchivePath = '' then
   begin
     MsgBox(CustomMessage('ImportSkipped'), mbInformation, MB_OK);
     exit;
   end;
 
-  if not HasSourceGameFolders(SourceDir) then
+  TempDir := ExpandConstant('{tmp}\\Recreate-H3-Import');
+  DelTree(TempDir, True, True, True);
+  if not ForceDirectories(TempDir) then
+  begin
+    MsgBox('Could not create a temporary extraction folder.', mbError, MB_OK);
+    exit;
+  end;
+
+  PowerShellPath := ExpandConstant('{sys}\\WindowsPowerShell\\v1.0\\powershell.exe');
+  Parameters := '-NoProfile -ExecutionPolicy Bypass -Command "Expand-Archive -LiteralPath '
+    + #39 + EscapePowerShell(ArchivePath) + #39
+    + ' -DestinationPath ' + #39 + EscapePowerShell(TempDir) + #39 + ' -Force"';
+
+  if not Exec(PowerShellPath, Parameters, '', SW_HIDE, ewWaitUntilTerminated, ResultCode)
+    or (ResultCode <> 0) then
+  begin
+    MsgBox('The Heroes III ZIP archive could not be extracted. Nothing was imported.', mbError, MB_OK);
+    exit;
+  end;
+
+  SourceDir := FindGameRoot(TempDir);
+  if (SourceDir = '') or not HasSourceGameFolders(SourceDir) then
   begin
     MsgBox(CustomMessage('InvalidGameFolder'), mbError, MB_OK);
     MsgBox(CustomMessage('ImportSkipped'), mbInformation, MB_OK);
+    DelTree(TempDir, True, True, True);
     exit;
   end;
 
@@ -223,8 +300,7 @@ begin
   if CopyGameFolder(SourceDir + '\\Data', DestDir + '\\Data')
     and CopyGameFolder(SourceDir + '\\Maps', DestDir + '\\h3mmaps') then
   begin
-    // Place only the two requested legacy editors in the VCMI engine directory.
-    // Do not copy Heroes3.exe, registration tools, registry files, or installers.
+    // Import only the two requested legacy editors, not the original game executable.
     if FileExists(SourceDir + '\\h3maped.exe') then
       FileCopy(SourceDir + '\\h3maped.exe', DestDir + '\\h3maped.exe', False);
     if FileExists(SourceDir + '\\h3ccmped.exe') then
@@ -233,6 +309,8 @@ begin
   end
   else
     MsgBox(CustomMessage('ImportIncomplete'), mbError, MB_OK);
+
+  DelTree(TempDir, True, True, True);
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
