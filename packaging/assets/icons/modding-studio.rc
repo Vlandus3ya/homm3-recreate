@@ -1,0 +1,2 @@
+// Embed the Modding Studio icon into the executable itself.
+IDI_ICON1 ICON "modding-studio.ico"
