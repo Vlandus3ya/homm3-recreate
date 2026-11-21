@@ -128,13 +128,54 @@ static BOOL ChooseProjectFile(BOOL campaign, wchar_t *filePath, DWORD capacity)
     return GetOpenFileNameW(&dialog);
 }
 
-static BOOL LaunchEditor(const wchar_t *projectFile)
+static BOOL LaunchLegacyEditor(const wchar_t *projectFile, BOOL campaign)
 {
-    if (!g_editorPath[0] && !LocateEditor() && !ChooseEditorExecutable())
-    {
-        SetStatus(L"VCMI Map Editor was not selected. Place VCMI_mapeditor.exe beside this app or choose it manually.");
+    wchar_t appDirectory[MAX_PATH], legacyPath[MAX_PATH], workingDirectory[MAX_PATH];
+    GetApplicationDirectory(appDirectory, MAX_PATH);
+    if (!appDirectory[0]) return FALSE;
+
+    const wchar_t *legacyName = campaign ? L"h3ccmped.exe" : L"h3maped.exe";
+    wchar_t relative[MAX_PATH];
+    swprintf(relative, MAX_PATH, L"Game Engine\\vcmi\\%ls", legacyName);
+    if (!JoinPath(legacyPath, MAX_PATH, appDirectory, relative) || !FileExists(legacyPath)) {
+        if (!JoinPath(legacyPath, MAX_PATH, appDirectory, legacyName) || !FileExists(legacyPath)) {
+            SetStatus(campaign
+                ? L"VCMI failed; h3ccmped.exe was not imported. Reinstall or import original game files."
+                : L"VCMI failed; h3maped.exe was not imported. Reinstall or import original game files.");
+            return FALSE;
+        }
+    }
+
+    wcsncpy(workingDirectory, legacyPath, MAX_PATH - 1);
+    workingDirectory[MAX_PATH - 1] = L'\\0';
+    wchar_t *slash = wcsrchr(workingDirectory, L'\\');
+    if (slash) *slash = L'\\0';
+
+    STARTUPINFOW startup; PROCESS_INFORMATION process;
+    ZeroMemory(&startup, sizeof(startup)); ZeroMemory(&process, sizeof(process));
+    startup.cb = sizeof(startup);
+    if (!CreateProcessW(legacyPath, NULL, NULL, NULL, FALSE, 0, NULL,
+                        workingDirectory, &startup, &process)) {
+        SetStatus(L"The original Heroes III editor could not be started.");
         return FALSE;
     }
+    CloseHandle(process.hThread); CloseHandle(process.hProcess);
+    SetStatus(campaign
+        ? L"VCMI did not start. Original Campaign Editor launched; open the campaign manually."
+        : L"VCMI did not start. Original Map Editor launched; open the map manually.");
+    (void)projectFile;
+    return TRUE;
+}
+
+static BOOL LaunchEditor(const wchar_t *projectFile, BOOL campaign)
+{
+    // Prefer the original Heroes III editors shipped from the user-provided game folder.
+    // They are the compatibility fallback/replacement for the VCMI editor in this build.
+    if (LaunchLegacyEditor(projectFile, campaign))
+        return TRUE;
+
+    if (!g_editorPath[0] && !LocateEditor() && !ChooseEditorExecutable())
+        return LaunchLegacyEditor(projectFile, campaign);
 
     wchar_t commandLine[2 * MAX_PATH + 8];
     int written;
@@ -165,19 +206,30 @@ static BOOL LaunchEditor(const wchar_t *projectFile)
     if (!CreateProcessW(g_editorPath, commandLine, NULL, NULL, FALSE, 0, NULL,
                         workingDirectory[0] ? workingDirectory : NULL, &startup, &process))
     {
-        DWORD error = GetLastError();
-        wchar_t message[256];
-        swprintf(message, sizeof(message) / sizeof(message[0]),
-                 L"Could not start VCMI Map Editor (Windows error %lu).", (unsigned long)error);
-        SetStatus(message);
-        return FALSE;
+        return LaunchLegacyEditor(projectFile, campaign);
+    }
+
+    // Give VCMI a short startup window. An early process exit is treated as a startup failure.
+    DWORD waitResult = WaitForSingleObject(process.hProcess, 5000);
+    if (waitResult == WAIT_OBJECT_0) {
+        DWORD exitCode = 0;
+        GetExitCodeProcess(process.hProcess, &exitCode);
+        CloseHandle(process.hThread);
+        CloseHandle(process.hProcess);
+        (void)exitCode;
+        return LaunchLegacyEditor(projectFile, campaign);
+    }
+    if (waitResult == WAIT_FAILED) {
+        CloseHandle(process.hThread);
+        CloseHandle(process.hProcess);
+        return LaunchLegacyEditor(projectFile, campaign);
     }
 
     CloseHandle(process.hThread);
     CloseHandle(process.hProcess);
     SetStatus(projectFile && projectFile[0]
-        ? L"Project opened in VCMI Map Editor."
-        : L"VCMI Map Editor started.");
+        ? L"VCMI Map Editor started. Startup check passed."
+        : L"VCMI Map Editor started. Startup check passed.");
     return TRUE;
 }
 
@@ -277,21 +329,21 @@ static LRESULT CALLBACK WindowProc(HWND window, UINT message, WPARAM wParam, LPA
                 {
                     wchar_t filePath[MAX_PATH];
                     if (ChooseProjectFile(FALSE, filePath, MAX_PATH))
-                        LaunchEditor(filePath);
+                        LaunchEditor(filePath, FALSE);
                     return 0;
                 }
                 case ID_OPEN_CAMPAIGN:
                 {
                     wchar_t filePath[MAX_PATH];
                     if (ChooseProjectFile(TRUE, filePath, MAX_PATH))
-                        LaunchEditor(filePath);
+                        LaunchEditor(filePath, TRUE);
                     return 0;
                 }
                 case ID_START_EDITOR:
-                    LaunchEditor(NULL);
+                    LaunchEditor(NULL, FALSE);
                     return 0;
                 case ID_BATCH_CONVERT:
-                    if (LaunchEditor(NULL))
+                    if (LaunchEditor(NULL, FALSE))
                     {
                         MessageBoxW(window,
                             L"В VCMI Map Editor выберите File -> h3m converter.\n"

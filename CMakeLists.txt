@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(HoMM3Recreate VERSION 0.1.0 LANGUAGES C)
+project(HoMM3Recreate VERSION 0.1.0 LANGUAGES C RC)
 
 if(NOT WIN32)
     message(STATUS "The first native Modding Studio target is Windows-only.")
@@ -7,6 +7,7 @@ endif()
 
 add_executable(RecreateModdingStudio WIN32
     src/modding_studio/main.c
+    packaging/assets/icons/modding-studio.rc
 )
 
 add_executable(H3R_CL WIN32 src/launcher/main.c)

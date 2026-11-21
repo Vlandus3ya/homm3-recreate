@@ -2,7 +2,7 @@ name: Recreate Windows builds
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, working-build]
   pull_request:
   workflow_dispatch:
 
@@ -129,6 +129,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Prepare Modding Studio application icon
+        shell: pwsh
+        run: |
+          $icons = "packaging/assets/icons"
+          New-Item -ItemType Directory -Force $icons | Out-Null
+          [IO.File]::WriteAllBytes("$icons/modding-studio.ico", [Convert]::FromBase64String((Get-Content "$icons/modding-studio.ico.b64" -Raw)))
+          if (!(Test-Path "$icons/modding-studio.ico")) { throw "Modding Studio icon preparation failed." }
+
       - name: Configure Modding Studio
         run: cmake -S . -B build-${{ matrix.platform }} -A ${{ matrix.platform }}
 
@@ -162,6 +170,19 @@ jobs:
           name: recreate-engine-${{ matrix.arch }}
           path: dist/Game Engine/vcmi
 
+      - name: Validate complete VCMI runtime package
+        shell: pwsh
+        run: |
+          $engine = "dist/Game Engine/vcmi"
+          if (!(Test-Path $engine)) { throw "VCMI install tree is missing: $engine" }
+          $client = Get-ChildItem $engine -Recurse -File -Filter "VCMI_client.exe" | Select-Object -First 1
+          $editor = Get-ChildItem $engine -Recurse -File -Filter "VCMI_mapeditor.exe" | Select-Object -First 1
+          if (!$client) { throw "VCMI_client.exe is missing from the installed engine tree." }
+          if (!$editor) { throw "VCMI_mapeditor.exe is missing from the installed engine tree." }
+          New-Item -ItemType Directory -Force "$engine/Data", "$engine/h3mmaps", "$engine/vmapmaps" | Out-Null
+          Write-Host "VCMI client: $($client.FullName)"
+          Write-Host "VCMI map editor: $($editor.FullName)"
+
       - name: Download Modding Studio
         uses: actions/download-artifact@v4
         with:
@@ -175,6 +196,8 @@ jobs:
           New-Item -ItemType Directory -Force dist/OpenResources | Out-Null
           Copy-Item OpenResources/README.md dist/OpenResources/README.md
           Copy-Item docs/OPEN_RESOURCES.md dist/OpenResources/OPEN_RESOURCES.md
+          New-Item -ItemType Directory -Force dist/Bots | Out-Null
+          Copy-Item Bots/* dist/Bots/ -Recurse -Force
 
       - name: Create Recreate archive
         shell: pwsh
@@ -186,6 +209,15 @@ jobs:
       - name: Install Inno Setup
         shell: pwsh
         run: choco install innosetup --yes --no-progress
+
+      - name: Prepare Recreate application icons
+        shell: pwsh
+        run: |
+          $icons = "packaging/assets/icons"
+          New-Item -ItemType Directory -Force $icons | Out-Null
+          [IO.File]::WriteAllBytes("$icons/heroes3.ico", [Convert]::FromBase64String((Get-Content "$icons/heroes3.ico.b64" -Raw)))
+          [IO.File]::WriteAllBytes("$icons/modding-studio.ico", [Convert]::FromBase64String((Get-Content "$icons/modding-studio.ico.b64" -Raw)))
+          if (!(Test-Path "$icons/heroes3.ico") -or !(Test-Path "$icons/modding-studio.ico")) { throw "Application icon preparation failed." }
 
       - name: Compile Recreate installer
         shell: pwsh

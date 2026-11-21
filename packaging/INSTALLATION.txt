@@ -1,38 +1,34 @@
 Heroes of Might and Magic III: Recreate
 Windows package notes
 
-The installed layout places the VCMI runtime in:
-  Game Engine\vcmi\
+The complete VCMI install tree is staged at:
+  Game Engine\\vcmi\\
 
 The Recreate front ends are installed at the application root:
   h3r.exe
   Modding Studio.exe
 
-The installer creates these project folders:
-  Game Engine\vcmi\data
-  Game Engine\vcmi\h3mmaps
-  Game Engine\vcmi\vmapmaps
-  Game Engine\vcmi\Video
-  Game Engine\vcmi\sounds
+After importing a user's Heroes III folder:
+  Game Engine\\vcmi\\Data       - original game data required by VCMI
+  Game Engine\\vcmi\\h3mmaps    - original Heroes III .h3m maps
+  Game Engine\\vcmi\\vmapmaps   - converted VMap maps and downloaded VCMI maps
+  Game Engine\\vcmi\\h3maped.exe  - original map editor fallback/replacement
+  Game Engine\\vcmi\\h3ccmped.exe - original campaign editor
+
+Modding Studio prefers the imported original editors. If they are absent, it
+attempts to launch the VCMI Map Editor. The original Heroes3.exe, registration
+utilities, registry scripts, and original installer are not copied.
+
+The vmapmaps folder is not populated by renaming .h3m files. Convert H3M maps
+using a compatible VCMI map conversion workflow, then place the resulting VMap
+files in vmapmaps. Downloaded maps intended for VCMI also belong there.
+
+The installer creates project folders:
   Profile
   settings
   InternetIpConnections
   Bots
 
-The installer does not contain proprietary original Heroes III game data.
-Users may import their own lawful game data during setup. If no game data is
-available, Recreate can still be installed and its diagnostic mode can run:
-  h3r.exe /check
-The diagnostic checks the VCMI client executable and the data, maps, and Mods
-folders. It does not launch a playable game.
-
-The Open Resources initiative is documented in OpenResources/README.md and
-docs/OPEN_RESOURCES.md. This is an asset-development scaffold, not a complete
-playable replacement for original Heroes III data.
-
-The vmapmaps folder is intentionally not populated by renaming .h3m files.
-Maps must be genuinely converted to .vmap using VCMI Map Editor.
-
-RegisterSOD and hmm3sod.reg are not part of the Recreate setup.
-Do not commit or redistribute proprietary Heroes III resources in this public
-repository or its public build artifacts.
+This public repository and its public build artifacts do not contain
+proprietary Heroes III game data. Users may import their own lawful game data
+during setup. Do not commit or redistribute copyrighted game resources.
