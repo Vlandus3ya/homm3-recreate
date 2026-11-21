@@ -202,6 +202,15 @@ jobs:
         shell: pwsh
         run: choco install innosetup --yes --no-progress
 
+      - name: Prepare Recreate application icons
+        shell: pwsh
+        run: |
+          $icons = "packaging/assets/icons"
+          New-Item -ItemType Directory -Force $icons | Out-Null
+          [IO.File]::WriteAllBytes("$icons/heroes3.ico", [Convert]::FromBase64String((Get-Content "$icons/heroes3.ico.b64" -Raw)))
+          [IO.File]::WriteAllBytes("$icons/modding-studio.ico", [Convert]::FromBase64String((Get-Content "$icons/modding-studio.ico.b64" -Raw)))
+          if (!(Test-Path "$icons/heroes3.ico") -or !(Test-Path "$icons/modding-studio.ico")) { throw "Application icon preparation failed." }
+
       - name: Compile Recreate installer
         shell: pwsh
         run: |
