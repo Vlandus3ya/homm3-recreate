@@ -255,12 +255,13 @@ begin
     exit;
   end;
 
+  ArchivePath := '';
   if not GetOpenFileName(
     'Select your Heroes III ZIP archive',
+    ArchivePath,
     ExpandConstant('{userdocs}'),
-    'Файлы герои 3.zip',
     'ZIP archives (*.zip)|*.zip|All files (*.*)|*.*',
-    ArchivePath) then
+    'zip') then
   begin
     MsgBox(CustomMessage('ImportSkipped'), mbInformation, MB_OK);
     exit;
