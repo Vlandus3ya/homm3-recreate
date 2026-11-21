@@ -129,6 +129,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Prepare Modding Studio application icon
+        shell: pwsh
+        run: |
+          $icons = "packaging/assets/icons"
+          New-Item -ItemType Directory -Force $icons | Out-Null
+          [IO.File]::WriteAllBytes("$icons/modding-studio.ico", [Convert]::FromBase64String((Get-Content "$icons/modding-studio.ico.b64" -Raw)))
+          if (!(Test-Path "$icons/modding-studio.ico")) { throw "Modding Studio icon preparation failed." }
+
       - name: Configure Modding Studio
         run: cmake -S . -B build-${{ matrix.platform }} -A ${{ matrix.platform }}
 
