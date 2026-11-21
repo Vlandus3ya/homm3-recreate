@@ -53,12 +53,12 @@ Name: "russian"; MessagesFile: "compiler:Languages\\Russian.isl"
 [CustomMessages]
 english.GameDataFound=Heroes III game data was found in Game Engine\\vcmi. No import is needed.
 russian.GameDataFound=Файлы Heroes III уже найдены в Game Engine\\vcmi. Импорт не требуется.
-english.GameDataPrompt=Optional: import your own Heroes III: Shadow of Death or Complete files now? Select the folder containing Data and Maps (Mp3 is optional). You can choose No and install the VCMI engine without game data. The game will need original files before it can be played.
-russian.GameDataPrompt=Необязательно: импортировать ваши файлы Heroes III: Дыхание смерти или Complete сейчас? Выберите папку с Data и Maps (Mp3 необязательна). Можно нажать «Нет» и установить VCMI без игровых данных. Для игры оригинальные файлы всё равно понадобятся.
+english.GameDataPrompt=Import your Heroes III ZIP archive now? The installer extracts it temporarily and imports Data, Maps, h3maped.exe and h3ccmped.exe. Heroes3.exe, RegisterSOD and hmm3sod.reg are ignored.
+russian.GameDataPrompt=Импортировать ZIP-архив Heroes III? Установщик временно распакует его и импортирует Data, Maps, h3maped.exe и h3ccmped.exe. Heroes3.exe, RegisterSOD и hmm3sod.reg игнорируются.
 english.SelectGameFolder=Select the Heroes III game folder
 russian.SelectGameFolder=Выберите папку с файлами Heroes III
-english.InvalidGameFolder=The selected folder must contain both folders: Data and Maps. Mp3 is optional. Nothing was copied.
-russian.InvalidGameFolder=В выбранной папке должны находиться обе папки: Data и Maps. Mp3 необязательна. Файлы не скопированы.
+english.InvalidGameFolder=The selected ZIP must contain the Heroes III folder with Data and Maps. Nothing was copied.
+russian.InvalidGameFolder=В ZIP-архиве должна находиться папка Heroes III с Data и Maps. Файлы не скопированы.
 english.ImportComplete=Game data, original H3M maps, and available legacy editors were imported. Existing files were not overwritten.
 russian.ImportComplete=Игровые данные, оригинальные карты H3M и доступные старые редакторы импортированы. Существующие файлы не перезаписывались.
 english.ImportIncomplete=Some files could not be copied. Existing files were left unchanged. Check Game Engine\\vcmi and try again if necessary.
@@ -255,13 +255,12 @@ begin
     exit;
   end;
 
-  ArchivePath := GetOpenFileName(
+  if not GetOpenFileName(
     'Select your Heroes III ZIP archive',
+    ExpandConstant('{userdocs}'),
     'Файлы герои 3.zip',
-    '',
     'ZIP archives (*.zip)|*.zip|All files (*.*)|*.*',
-    'zip');
-  if ArchivePath = '' then
+    ArchivePath) then
   begin
     MsgBox(CustomMessage('ImportSkipped'), mbInformation, MB_OK);
     exit;
