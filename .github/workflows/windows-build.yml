@@ -2,7 +2,7 @@ name: Recreate Windows builds
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, working-build]
   pull_request:
   workflow_dispatch:
 
